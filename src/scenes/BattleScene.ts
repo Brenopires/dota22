@@ -10,6 +10,7 @@ import { AIController } from '../ai/AIController';
 import { HUD } from '../ui/HUD';
 import { MMRCalculator } from '../utils/MMRCalculator';
 import { StorageManager } from '../utils/StorageManager';
+import { VFXManager } from '../systems/VFXManager';
 
 export class BattleScene extends Phaser.Scene {
   player!: Hero;
@@ -17,6 +18,7 @@ export class BattleScene extends Phaser.Scene {
   teamA: Hero[] = [];
   teamB: Hero[] = [];
   combatSystem!: CombatSystem;
+  vfxManager!: VFXManager;
   aiControllers: AIController[] = [];
   hud!: HUD;
   matchTimer = MATCH_DURATION;
@@ -63,6 +65,9 @@ export class BattleScene extends Phaser.Scene {
     // Generate match config
     this.matchConfig = MatchOrchestrator.generateMatch();
 
+    // Create VFX manager
+    this.vfxManager = new VFXManager(this);
+
     // Create arena
     this.obstacles = this.physics.add.staticGroup();
     this.projectiles = this.add.group();
@@ -74,13 +79,17 @@ export class BattleScene extends Phaser.Scene {
     // Set world bounds
     this.physics.world.setBounds(0, 0, ARENA_WIDTH, ARENA_HEIGHT);
 
+    // Ambient particles
+    this.vfxManager.createAmbientParticles(this.matchConfig.arenaTheme, {
+      x: 0, y: 0, width: ARENA_WIDTH, height: ARENA_HEIGHT,
+    });
+
     // Create combat system
     this.combatSystem = new CombatSystem(this);
 
     // Create heroes
     const { teamA: teamAIds, teamB: teamBIds, playerHero } = this.matchConfig;
 
-    // Create Team A heroes
     for (let i = 0; i < teamAIds.length; i++) {
       const heroId = teamAIds[i];
       const spawn = arenaConfig.spawnA[i] || arenaConfig.spawnA[0];
@@ -93,7 +102,6 @@ export class BattleScene extends Phaser.Scene {
       }
     }
 
-    // Create Team B heroes
     for (let i = 0; i < teamBIds.length; i++) {
       const heroId = teamBIds[i];
       const spawn = arenaConfig.spawnB[i] || arenaConfig.spawnB[0];
@@ -116,6 +124,10 @@ export class BattleScene extends Phaser.Scene {
     // Camera follow player
     this.cameras.main.setBounds(0, 0, ARENA_WIDTH, ARENA_HEIGHT);
     this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
+    this.cameras.main.fadeIn(400);
+
+    // Vignette overlay
+    this.createVignette();
 
     // Input
     this.keys = {
@@ -143,6 +155,41 @@ export class BattleScene extends Phaser.Scene {
     });
   }
 
+  private createVignette(): void {
+    const g = this.add.graphics();
+    g.setScrollFactor(0);
+    g.setDepth(150);
+
+    const w = this.cameras.main.width;
+    const h = this.cameras.main.height;
+    const thickness = 80;
+
+    // Top edge
+    for (let i = 0; i < thickness; i++) {
+      const alpha = (1 - i / thickness) * 0.3;
+      g.fillStyle(0x000000, alpha);
+      g.fillRect(0, i, w, 1);
+    }
+    // Bottom edge
+    for (let i = 0; i < thickness; i++) {
+      const alpha = (1 - i / thickness) * 0.3;
+      g.fillStyle(0x000000, alpha);
+      g.fillRect(0, h - i, w, 1);
+    }
+    // Left edge
+    for (let i = 0; i < thickness; i++) {
+      const alpha = (1 - i / thickness) * 0.2;
+      g.fillStyle(0x000000, alpha);
+      g.fillRect(i, 0, 1, h);
+    }
+    // Right edge
+    for (let i = 0; i < thickness; i++) {
+      const alpha = (1 - i / thickness) * 0.2;
+      g.fillStyle(0x000000, alpha);
+      g.fillRect(w - i, 0, 1, h);
+    }
+  }
+
   update(time: number, delta: number): void {
     if (this.matchOver) return;
 
@@ -159,7 +206,6 @@ export class BattleScene extends Phaser.Scene {
     for (const hero of this.heroes) {
       if (hero.isAlive) {
         hero.updateHero(dt);
-        // Mana regen
         hero.currentMana = Math.min(hero.stats.maxMana, hero.currentMana + MANA_REGEN_RATE * dt);
       }
     }
@@ -194,7 +240,6 @@ export class BattleScene extends Phaser.Scene {
     if (this.keys.W.isDown) vy -= 1;
     if (this.keys.S.isDown) vy += 1;
 
-    // Normalize diagonal movement
     if (vx !== 0 && vy !== 0) {
       const len = Math.sqrt(vx * vx + vy * vy);
       vx /= len;
@@ -219,7 +264,7 @@ export class BattleScene extends Phaser.Scene {
       worldPoint.x - this.player.x
     );
 
-    // Abilities: I/O/P or 1/2/3
+    // Abilities
     if (Phaser.Input.Keyboard.JustDown(this.keys.I) || Phaser.Input.Keyboard.JustDown(this.keys.ONE)) {
       this.player.useAbility(0, worldPoint.x, worldPoint.y);
     }
@@ -252,6 +297,10 @@ export class BattleScene extends Phaser.Scene {
     if (killer === this.player) {
       this.playerKills++;
     }
+
+    // Kill feed
+    this.hud.showKill(killer.stats.name, victim.stats.name);
+
     if (victim === this.player) {
       this.playerDeaths++;
       this.endMatchAsDefeat();
@@ -287,7 +336,11 @@ export class BattleScene extends Phaser.Scene {
     StorageManager.saveMatchResult(result);
 
     this.time.delayedCall(1200, () => {
-      this.scene.start('ResultScene', { result });
+      this.cameras.main.fadeOut(400, 0, 0, 0, (_cam: any, progress: number) => {
+        if (progress === 1) {
+          this.scene.start('ResultScene', { result });
+        }
+      });
     });
   }
 
@@ -317,7 +370,6 @@ export class BattleScene extends Phaser.Scene {
     } else if (teamBAlive > teamAAlive) {
       won = this.player.team === Team.B;
     } else {
-      // Compare kills
       const playerTeamKills = this.player.team === Team.A ? this.teamAKills : this.teamBKills;
       const enemyTeamKills = this.player.team === Team.A ? this.teamBKills : this.teamAKills;
       if (playerTeamKills > enemyTeamKills) {
@@ -327,7 +379,6 @@ export class BattleScene extends Phaser.Scene {
       }
     }
 
-    // Calculate MMR
     const playerData = StorageManager.load();
     const mmrChange = MMRCalculator.calculate(playerData.mmr, won, draw, playerData);
 
@@ -350,8 +401,18 @@ export class BattleScene extends Phaser.Scene {
     StorageManager.saveMatchResult(result);
 
     this.time.delayedCall(1500, () => {
-      this.scene.start('ResultScene', { result });
+      this.cameras.main.fadeOut(400, 0, 0, 0, (_cam: any, progress: number) => {
+        if (progress === 1) {
+          this.scene.start('ResultScene', { result });
+        }
+      });
     });
+  }
+
+  shutdown(): void {
+    if (this.vfxManager) {
+      this.vfxManager.destroy();
+    }
   }
 
   getEnemies(team: Team): Hero[] {

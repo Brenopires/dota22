@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { Team, AbilityDef, BuffType } from '../types';
 import { Hero } from './Hero';
+import { VFXManager } from '../systems/VFXManager';
 
 export class AreaEffect extends Phaser.GameObjects.Arc {
   abilityDef: AbilityDef;
@@ -14,6 +15,8 @@ export class AreaEffect extends Phaser.GameObjects.Arc {
   tickTimer: number;
   hasApplied: boolean;
   isHeal: boolean;
+  private pulseRing: Phaser.GameObjects.Arc | null = null;
+  private areaEmitter: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
 
   constructor(
     scene: Phaser.Scene,
@@ -42,6 +45,39 @@ export class AreaEffect extends Phaser.GameObjects.Arc {
     this.setDepth(1);
 
     scene.add.existing(this);
+
+    // Entry animation: scale from 0
+    this.setScale(0);
+    scene.tweens.add({
+      targets: this,
+      scaleX: 1,
+      scaleY: 1,
+      duration: 200,
+      ease: 'Back.easeOut',
+    });
+
+    // Pulsing ring on border
+    this.pulseRing = scene.add.circle(x, y, radius);
+    this.pulseRing.setStrokeStyle(2, color, 0.8);
+    this.pulseRing.setFillStyle(0x000000, 0);
+    this.pulseRing.setDepth(1);
+    scene.tweens.add({
+      targets: this.pulseRing,
+      scaleX: { from: 0.95, to: 1.05 },
+      scaleY: { from: 0.95, to: 1.05 },
+      alpha: { from: 0.8, to: 0.4 },
+      duration: 600,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
+
+    // Area fill particles
+    const battleScene = scene as any;
+    if (battleScene.vfxManager) {
+      const element = VFXManager.getElement(owner.stats.id);
+      this.areaEmitter = battleScene.vfxManager.createAreaParticles(x, y, radius, element, this.duration, color);
+    }
   }
 
   updateEffect(dt: number, heroes: Hero[]): void {
@@ -59,16 +95,13 @@ export class AreaEffect extends Phaser.GameObjects.Arc {
         if (dist > this.radius) continue;
 
         if (this.isHeal) {
-          // Heal allies
           if (hero.team === this.ownerTeam) {
             hero.heal(this.abilityDef.healAmount || 0);
           }
         } else {
-          // Damage enemies
           if (hero.team !== this.ownerTeam) {
             hero.takeDamage(this.damage * this.tickInterval, this.ownerId);
 
-            // Apply debuffs
             if (this.abilityDef.buffType) {
               hero.addBuff({
                 type: this.abilityDef.buffType,
@@ -87,7 +120,23 @@ export class AreaEffect extends Phaser.GameObjects.Arc {
     this.setAlpha(0.2 * (this.remaining / this.duration));
 
     if (this.remaining <= 0) {
-      this.destroy();
+      this.cleanupAndDestroy();
     }
+  }
+
+  private cleanupAndDestroy(): void {
+    if (this.pulseRing) {
+      this.pulseRing.destroy();
+      this.pulseRing = null;
+    }
+    if (this.areaEmitter?.active) {
+      this.areaEmitter.stop();
+      const emitter = this.areaEmitter;
+      this.scene.time.delayedCall(600, () => {
+        if (emitter?.active) emitter.destroy();
+      });
+      this.areaEmitter = null;
+    }
+    this.destroy();
   }
 }

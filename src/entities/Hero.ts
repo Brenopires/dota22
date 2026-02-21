@@ -16,9 +16,14 @@ export class Hero extends Phaser.GameObjects.Container {
   private circle: Phaser.GameObjects.Arc;
   private label: Phaser.GameObjects.Text;
   private teamIndicator: Phaser.GameObjects.Arc;
+  private glowImage: Phaser.GameObjects.Image | null = null;
+  private directionArrow: Phaser.GameObjects.Triangle | null = null;
+  private stunContainer: Phaser.GameObjects.Container | null = null;
+  private slowOverlay: Phaser.GameObjects.Arc | null = null;
+  private silenceGraphics: Phaser.GameObjects.Graphics | null = null;
   healthBar: HealthBar;
 
-  abilityCooldowns: number[] = [0, 0, 0]; // remaining cooldown in seconds
+  abilityCooldowns: number[] = [0, 0, 0];
   autoAttackTimer = 0;
 
   buffs: ActiveBuff[] = [];
@@ -34,12 +39,48 @@ export class Hero extends Phaser.GameObjects.Container {
     this.currentHP = stats.maxHP;
     this.currentMana = stats.maxMana;
 
+    // Glow behind hero
+    if (scene.textures.exists('glow_circle')) {
+      this.glowImage = scene.add.image(0, 0, 'glow_circle');
+      this.glowImage.setTint(stats.color);
+      this.glowImage.setAlpha(0.15);
+      this.glowImage.setBlendMode(Phaser.BlendModes.ADD);
+      this.glowImage.setScale(2.5);
+      this.add(this.glowImage);
+
+      // Pulsing glow tween
+      scene.tweens.add({
+        targets: this.glowImage,
+        alpha: { from: 0.1, to: 0.25 },
+        scaleX: { from: 2.3, to: 2.7 },
+        scaleY: { from: 2.3, to: 2.7 },
+        duration: 1500,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+      });
+    }
+
     // Team indicator ring
     const teamColor = team === Team.A ? 0x00aaff : 0xff4444;
     this.teamIndicator = scene.add.circle(0, 0, HERO_RADIUS + 3);
     this.teamIndicator.setStrokeStyle(2, teamColor);
-    this.teamIndicator.setFillStyle(0x000000, 0);
+    this.teamIndicator.setFillStyle(teamColor, 0.05);
     this.add(this.teamIndicator);
+
+    // Outer pulse ring for team
+    const outerRing = scene.add.circle(0, 0, HERO_RADIUS + 5);
+    outerRing.setStrokeStyle(1, teamColor, 0.3);
+    outerRing.setFillStyle(0x000000, 0);
+    this.add(outerRing);
+    scene.tweens.add({
+      targets: outerRing,
+      alpha: { from: 0.3, to: 0.7 },
+      duration: 2000,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
 
     // Player highlight ring
     if (isPlayer) {
@@ -53,7 +94,26 @@ export class Hero extends Phaser.GameObjects.Container {
     this.circle = scene.add.circle(0, 0, HERO_RADIUS, stats.color);
     this.add(this.circle);
 
-    // Label (2-letter abbreviation)
+    // Breathing idle animation
+    scene.tweens.add({
+      targets: this.circle,
+      scaleX: { from: 1.0, to: 1.04 },
+      scaleY: { from: 1.0, to: 1.04 },
+      duration: 1200,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
+
+    // Direction arrow
+    this.directionArrow = scene.add.triangle(
+      HERO_RADIUS + 5, 0,
+      0, -4, 8, 0, 0, 4,
+      0xffffff, 0.6
+    );
+    this.add(this.directionArrow);
+
+    // Label
     this.label = scene.add.text(0, 0, stats.label, {
       fontSize: `${HERO_LABEL_SIZE}px`,
       color: '#ffffff',
@@ -106,19 +166,79 @@ export class Hero extends Phaser.GameObjects.Container {
       shieldRatio
     );
 
-    // Visual indicators
-    if (this.isStunned()) {
-      this.circle.setAlpha(0.5);
+    // Update direction arrow
+    if (this.directionArrow) {
+      const dist = HERO_RADIUS + 5;
+      this.directionArrow.setPosition(
+        Math.cos(this.faceDirection) * dist,
+        Math.sin(this.faceDirection) * dist
+      );
+      this.directionArrow.setRotation(this.faceDirection);
+    }
+
+    // Status visual indicators
+    this.updateStatusVisuals();
+  }
+
+  private updateStatusVisuals(): void {
+    const stunned = this.isStunned();
+    const slowed = this.buffs.some(b => b.type === BuffType.SLOW && b.remaining > 0);
+    const silenced = this.isSilenced();
+
+    // Stun stars
+    if (stunned && !this.stunContainer) {
+      this.stunContainer = this.scene.add.container(0, -HERO_RADIUS - 15);
+      for (let i = 0; i < 3; i++) {
+        const angle = (i / 3) * Math.PI * 2;
+        const star = this.scene.add.text(
+          Math.cos(angle) * 10,
+          Math.sin(angle) * 10,
+          '*',
+          { fontSize: '12px', color: '#ffff00', fontFamily: 'monospace', fontStyle: 'bold' }
+        ).setOrigin(0.5);
+        this.stunContainer.add(star);
+      }
+      this.add(this.stunContainer);
+      this.scene.tweens.add({
+        targets: this.stunContainer,
+        angle: 360,
+        duration: 1000,
+        repeat: -1,
+      });
+    } else if (!stunned && this.stunContainer) {
+      this.stunContainer.destroy();
+      this.stunContainer = null;
+    }
+
+    // Slow overlay
+    if (slowed && !this.slowOverlay) {
+      this.slowOverlay = this.scene.add.circle(0, 0, HERO_RADIUS, 0x00CED1, 0.2);
+      this.add(this.slowOverlay);
+    } else if (!slowed && this.slowOverlay) {
+      this.slowOverlay.destroy();
+      this.slowOverlay = null;
+    }
+
+    // Silence X
+    if (silenced && !this.silenceGraphics) {
+      this.silenceGraphics = this.scene.add.graphics();
+      this.silenceGraphics.lineStyle(3, 0xff0000, 0.7);
+      const s = HERO_RADIUS * 0.6;
+      this.silenceGraphics.lineBetween(-s, -s, s, s);
+      this.silenceGraphics.lineBetween(s, -s, -s, s);
+      this.add(this.silenceGraphics);
+    } else if (!silenced && this.silenceGraphics) {
+      this.silenceGraphics.destroy();
+      this.silenceGraphics = null;
+    }
+
+    // Keep label visible (no alpha changes)
+    if (stunned) {
       this.label.setText('!!');
-    } else if (this.isRooted()) {
-      this.circle.setAlpha(0.7);
-      this.label.setText(this.stats.label);
-    } else if (this.isSilenced()) {
-      this.circle.setAlpha(0.8);
     } else {
-      this.circle.setAlpha(1);
       this.label.setText(this.stats.label);
     }
+    this.circle.setAlpha(1);
   }
 
   private updateBuffs(dt: number): void {
@@ -181,7 +301,6 @@ export class Hero extends Phaser.GameObjects.Container {
     let damage = rawDamage;
     if (this.shield > 0) {
       const absorbed = Math.min(this.shield, damage);
-      // Reduce shield buff values
       for (const buff of this.buffs) {
         if (buff.type === BuffType.SHIELD && buff.value > 0) {
           const take = Math.min(buff.value, absorbed);
@@ -220,27 +339,37 @@ export class Hero extends Phaser.GameObjects.Container {
     this.body?.setEnable(false);
     this.body?.setCircle(0);
 
-    // Death animation
+    // VFX death explosion
+    const battleScene = this.scene as any;
+    if (battleScene.vfxManager) {
+      battleScene.vfxManager.spawnDeathExplosion(this.x, this.y, this.stats.color);
+    }
+
+    // Death animation: shrink with rotation
     this.scene.tweens.add({
       targets: this,
       scaleX: 0,
       scaleY: 0,
       alpha: 0,
-      duration: 500,
-      ease: 'Power2',
+      angle: 360,
+      duration: 400,
+      ease: 'Back.easeIn',
       onComplete: () => {
         this.setVisible(false);
       },
     });
 
+    // Slow motion if player dies
+    if (this.isPlayer && battleScene.vfxManager) {
+      battleScene.vfxManager.slowMotion(1500, 0.3);
+    }
+
     // Notify battle scene
-    const battleScene = this.scene as any;
     if (battleScene.onHeroKill) {
       let killer: Hero | undefined;
       if (killerId) {
         killer = battleScene.heroes?.find((h: Hero) => h.getUniqueId() === killerId);
       }
-      // If no specific killer found, credit to nearest living enemy
       if (!killer) {
         const enemies = this.team === 'A' ? battleScene.teamB : battleScene.teamA;
         if (enemies) {
@@ -259,42 +388,74 @@ export class Hero extends Phaser.GameObjects.Container {
   }
 
   private showDamageNumber(amount: number): void {
-    const text = this.scene.add.text(this.x, this.y - 30, `-${Math.round(amount)}`, {
-      fontSize: '14px',
+    const rounded = Math.round(amount);
+    const isBigHit = rounded > 100;
+    const fontSize = isBigHit ? '18px' : '14px';
+    const offsetX = Phaser.Math.Between(-15, 15);
+
+    const text = this.scene.add.text(this.x + offsetX, this.y - 30, `-${rounded}`, {
+      fontSize,
       color: '#ff4444',
       fontFamily: 'monospace',
       fontStyle: 'bold',
+      stroke: '#000000',
+      strokeThickness: 2,
     });
     text.setOrigin(0.5);
     text.setDepth(100);
+    text.setScale(0);
 
+    // Pop-up animation
     this.scene.tweens.add({
       targets: text,
-      y: text.y - 30,
-      alpha: 0,
-      duration: 800,
-      ease: 'Power2',
-      onComplete: () => text.destroy(),
+      scaleX: 1,
+      scaleY: 1,
+      duration: 150,
+      ease: 'Back.easeOut',
+      onComplete: () => {
+        this.scene.tweens.add({
+          targets: text,
+          y: text.y - 40,
+          alpha: 0,
+          duration: 1000,
+          ease: 'Power2',
+          onComplete: () => text.destroy(),
+        });
+      },
     });
   }
 
   private showHealNumber(amount: number): void {
-    const text = this.scene.add.text(this.x, this.y - 30, `+${Math.round(amount)}`, {
+    const offsetX = Phaser.Math.Between(-15, 15);
+
+    const text = this.scene.add.text(this.x + offsetX, this.y - 30, `+${Math.round(amount)}`, {
       fontSize: '14px',
       color: '#44ff44',
       fontFamily: 'monospace',
       fontStyle: 'bold',
+      stroke: '#000000',
+      strokeThickness: 2,
     });
     text.setOrigin(0.5);
     text.setDepth(100);
+    text.setScale(0);
 
     this.scene.tweens.add({
       targets: text,
-      y: text.y - 30,
-      alpha: 0,
-      duration: 800,
-      ease: 'Power2',
-      onComplete: () => text.destroy(),
+      scaleX: 1,
+      scaleY: 1,
+      duration: 150,
+      ease: 'Back.easeOut',
+      onComplete: () => {
+        this.scene.tweens.add({
+          targets: text,
+          y: text.y - 40,
+          alpha: 0,
+          duration: 1000,
+          ease: 'Power2',
+          onComplete: () => text.destroy(),
+        });
+      },
     });
   }
 

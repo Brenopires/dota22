@@ -3,41 +3,48 @@ import { GAME_WIDTH, GAME_HEIGHT } from '../constants';
 import { Hero } from '../entities/Hero';
 
 interface AbilitySlot {
-  bg: Phaser.GameObjects.Rectangle;
-  cooldownOverlay: Phaser.GameObjects.Rectangle;
+  graphics: Phaser.GameObjects.Graphics;
   label: Phaser.GameObjects.Text;
   cdText: Phaser.GameObjects.Text;
   keyLabel: Phaser.GameObjects.Text;
+  x: number;
+  y: number;
 }
 
 export class AbilityBar {
   private scene: Phaser.Scene;
   private slots: AbilitySlot[] = [];
   private player: Hero;
+  private slotSize = 50;
 
   constructor(scene: Phaser.Scene, player: Hero) {
     this.scene = scene;
     this.player = player;
 
-    const slotSize = 50;
     const gap = 8;
-    const totalWidth = 3 * slotSize + 2 * gap;
-    const startX = GAME_WIDTH / 2 - totalWidth / 2 + slotSize / 2;
+    const totalWidth = 3 * this.slotSize + 2 * gap;
+    const startX = GAME_WIDTH / 2 - totalWidth / 2 + this.slotSize / 2;
     const y = GAME_HEIGHT - 55;
+
+    // Panel background behind ability bar
+    const panelBg = scene.add.graphics();
+    panelBg.fillStyle(0x000000, 0.4);
+    panelBg.fillRoundedRect(
+      GAME_WIDTH / 2 - totalWidth / 2 - 8,
+      y - this.slotSize / 2 - 6,
+      totalWidth + 16,
+      this.slotSize + 28,
+      8
+    );
+    panelBg.setScrollFactor(0).setDepth(199);
 
     const keys = ['I', 'O', 'P'];
 
     for (let i = 0; i < 3; i++) {
-      const x = startX + i * (slotSize + gap);
+      const x = startX + i * (this.slotSize + gap);
 
-      const bg = scene.add.rectangle(x, y, slotSize, slotSize, 0x222222)
-        .setScrollFactor(0)
-        .setDepth(200)
-        .setStrokeStyle(2, 0x666666);
-
-      const cooldownOverlay = scene.add.rectangle(x, y, slotSize, slotSize, 0x000000, 0.7)
-        .setScrollFactor(0)
-        .setDepth(201);
+      const graphics = scene.add.graphics();
+      graphics.setScrollFactor(0).setDepth(200);
 
       const abilityName = i < player.stats.abilities.length
         ? player.stats.abilities[i].name.substring(0, 6)
@@ -56,17 +63,20 @@ export class AbilityBar {
         fontStyle: 'bold',
       }).setOrigin(0.5).setScrollFactor(0).setDepth(202);
 
-      const keyLabel = scene.add.text(x, y + slotSize / 2 + 10, keys[i], {
+      const keyLabel = scene.add.text(x, y + this.slotSize / 2 + 10, keys[i], {
         fontSize: '12px',
         color: '#888888',
         fontFamily: 'monospace',
       }).setOrigin(0.5).setScrollFactor(0).setDepth(202);
 
-      this.slots.push({ bg, cooldownOverlay, label, cdText, keyLabel });
+      this.slots.push({ graphics, label, cdText, keyLabel, x, y });
     }
   }
 
   update(): void {
+    const s = this.slotSize;
+    const r = 6;
+
     for (let i = 0; i < this.slots.length; i++) {
       const slot = this.slots[i];
       if (i >= this.player.stats.abilities.length) continue;
@@ -75,24 +85,47 @@ export class AbilityBar {
       const cd = this.player.abilityCooldowns[i];
       const hasMana = this.player.currentMana >= ability.manaCost;
 
+      const g = slot.graphics;
+      g.clear();
+
+      const left = slot.x - s / 2;
+      const top = slot.y - s / 2;
+
+      // Slot background
+      g.fillStyle(0x222222, 1);
+      g.fillRoundedRect(left, top, s, s, r);
+
       if (cd > 0) {
+        // Cooldown overlay
         const ratio = cd / ability.cooldown;
-        slot.cooldownOverlay.setSize(50, 50 * ratio);
-        slot.cooldownOverlay.setY(slot.bg.y - 25 + (50 * ratio) / 2);
-        slot.cooldownOverlay.setVisible(true);
+        const cdHeight = s * ratio;
+        g.fillStyle(0x000000, 0.7);
+        g.fillRoundedRect(left, top, s, cdHeight, { tl: r, tr: r, bl: 0, br: 0 });
+
+        // Border: gray on cooldown
+        g.lineStyle(2, 0x444444, 1);
+        g.strokeRoundedRect(left, top, s, s, r);
+
         slot.cdText.setText(`${Math.ceil(cd)}`);
-        slot.bg.setStrokeStyle(2, 0x444444);
       } else if (!hasMana) {
-        slot.cooldownOverlay.setSize(50, 50);
-        slot.cooldownOverlay.setY(slot.bg.y);
-        slot.cooldownOverlay.setVisible(true);
-        slot.cooldownOverlay.setAlpha(0.5);
+        // No mana overlay
+        g.fillStyle(0x000000, 0.5);
+        g.fillRoundedRect(left, top, s, s, r);
+
+        g.lineStyle(2, 0x0000aa, 1);
+        g.strokeRoundedRect(left, top, s, s, r);
+
         slot.cdText.setText('');
-        slot.bg.setStrokeStyle(2, 0x0000aa);
       } else {
-        slot.cooldownOverlay.setVisible(false);
+        // Ready! Green border + glow
+        g.lineStyle(2, 0x00ff00, 1);
+        g.strokeRoundedRect(left, top, s, s, r);
+
+        // Subtle green glow
+        g.fillStyle(0x00ff00, 0.08);
+        g.fillRoundedRect(left, top, s, s, r);
+
         slot.cdText.setText('');
-        slot.bg.setStrokeStyle(2, 0x00ff00);
       }
     }
   }

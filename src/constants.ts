@@ -57,3 +57,19 @@ export const RANK_THRESHOLDS = [
 
 export const ARENA_THEMES = ['stone_ruins', 'lava_pit', 'frozen_tundra', 'dark_forest', 'desert_dunes'] as const;
 export const ARENA_LAYOUTS = ['open', 'corridor', 'pillars', 'fortress', 'maze_light'] as const;
+
+export const HERO_ELEMENT_MAP: Record<string, string> = {
+  flame_witch: 'fire',
+  frost_archer: 'ice',
+  storm_caller: 'lightning',
+  lightning_duelist: 'lightning',
+  venom_stalker: 'poison',
+  holy_priest: 'holy',
+  shadow_blade: 'shadow',
+  phantom_knight: 'shadow',
+  blade_dancer: 'blood',
+  blood_shaman: 'blood',
+  iron_guard: 'stone',
+  stone_golem: 'stone',
+  war_drummer: 'generic',
+};
