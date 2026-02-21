@@ -1,0 +1,400 @@
+import Phaser from 'phaser';
+import { AUTO_ATTACK_COOLDOWN } from '../constants';
+import { AbilityDef, AbilityType, BuffType, Team } from '../types';
+import { Hero } from '../entities/Hero';
+import { Projectile } from '../entities/Projectile';
+import { AreaEffect } from '../entities/AreaEffect';
+
+export class CombatSystem {
+  private scene: Phaser.Scene;
+  private projectiles: Projectile[] = [];
+  private areaEffects: AreaEffect[] = [];
+
+  constructor(scene: Phaser.Scene) {
+    this.scene = scene;
+  }
+
+  setupCollisions(heroes: Hero[], obstacles: Phaser.Physics.Arcade.StaticGroup): void {
+    // Hero-to-obstacle collisions
+    for (const hero of heroes) {
+      this.scene.physics.add.collider(hero, obstacles);
+    }
+
+    // Hero-to-hero collisions (same team only - prevents stacking)
+    for (let i = 0; i < heroes.length; i++) {
+      for (let j = i + 1; j < heroes.length; j++) {
+        this.scene.physics.add.collider(heroes[i], heroes[j]);
+      }
+    }
+  }
+
+  update(dt: number): void {
+    // Update projectiles
+    for (let i = this.projectiles.length - 1; i >= 0; i--) {
+      const proj = this.projectiles[i];
+      if (!proj.active) {
+        this.projectiles.splice(i, 1);
+        continue;
+      }
+      proj.update();
+
+      // Check collision with heroes
+      const battleScene = this.scene as any;
+      const heroes: Hero[] = battleScene.heroes || [];
+      for (const hero of heroes) {
+        if (!hero.isAlive) continue;
+        if (hero.team === proj.ownerTeam) {
+          // Check for heal projectiles (Holy Priest bolt)
+          if (proj.abilityDef.healAmount && hero.team === proj.ownerTeam) {
+            const dist = Phaser.Math.Distance.Between(proj.x, proj.y, hero.x, hero.y);
+            if (dist < 25 && hero.getUniqueId() !== proj.ownerId) {
+              hero.heal(proj.abilityDef.healAmount);
+              proj.destroy();
+              this.projectiles.splice(i, 1);
+              break;
+            }
+          }
+          continue;
+        }
+
+        const dist = Phaser.Math.Distance.Between(proj.x, proj.y, hero.x, hero.y);
+        if (dist < 25) {
+          // Hit!
+          hero.takeDamage(proj.damage, proj.ownerId);
+
+          // Apply buff/debuff
+          if (proj.abilityDef.buffType) {
+            hero.addBuff({
+              type: proj.abilityDef.buffType,
+              value: proj.abilityDef.buffValue || 0,
+              duration: proj.abilityDef.buffDuration || 1,
+              remaining: proj.abilityDef.buffDuration || 1,
+              sourceId: proj.ownerId,
+              tickInterval: 1,
+            });
+          }
+
+          // Self-heal on hit (Blood Shaman)
+          if (proj.abilityDef.healAmount) {
+            const owner = heroes.find(h => h.getUniqueId() === proj.ownerId);
+            if (owner && owner.isAlive) {
+              owner.heal(proj.abilityDef.healAmount);
+            }
+          }
+
+          proj.destroy();
+          this.projectiles.splice(i, 1);
+          break;
+        }
+      }
+
+      // Check collision with obstacles
+      if (proj.active) {
+        const obstacles: Phaser.Physics.Arcade.StaticGroup = battleScene.obstacles;
+        if (obstacles) {
+          const bodies = obstacles.getChildren();
+          for (const obs of bodies) {
+            const obsRect = obs as Phaser.GameObjects.Rectangle;
+            const bounds = obsRect.getBounds();
+            if (bounds.contains(proj.x, proj.y)) {
+              proj.destroy();
+              this.projectiles.splice(i, 1);
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    // Update area effects
+    const battleScene = this.scene as any;
+    const heroes: Hero[] = battleScene.heroes || [];
+    for (let i = this.areaEffects.length - 1; i >= 0; i--) {
+      const area = this.areaEffects[i];
+      if (!area.active) {
+        this.areaEffects.splice(i, 1);
+        continue;
+      }
+      area.updateEffect(dt, heroes);
+      if (!area.active) {
+        this.areaEffects.splice(i, 1);
+      }
+    }
+  }
+
+  tryAutoAttack(hero: Hero): void {
+    if (!hero.isAlive || hero.isStunned()) return;
+    if (hero.autoAttackTimer > 0) return;
+
+    const battleScene = this.scene as any;
+    const enemies = battleScene.getEnemies(hero.team) as Hero[];
+    if (!enemies || enemies.length === 0) return;
+
+    const range = hero.getAttackRange();
+    let closest: Hero | null = null;
+    let closestDist = Infinity;
+
+    for (const enemy of enemies) {
+      const dist = hero.distanceTo(enemy);
+      if (dist <= range && dist < closestDist) {
+        closestDist = dist;
+        closest = enemy;
+      }
+    }
+
+    if (closest) {
+      const damage = hero.getAttackDamage();
+      closest.takeDamage(damage, hero.getUniqueId());
+      hero.autoAttackTimer = AUTO_ATTACK_COOLDOWN / 1000;
+
+      // Visual: attack line
+      this.showAttackLine(hero, closest);
+    }
+  }
+
+  private showAttackLine(attacker: Hero, target: Hero): void {
+    const line = this.scene.add.line(
+      0, 0,
+      attacker.x, attacker.y,
+      target.x, target.y,
+      attacker.stats.color, 0.5
+    );
+    line.setOrigin(0, 0);
+    line.setDepth(3);
+    line.setLineWidth(2);
+
+    this.scene.tweens.add({
+      targets: line,
+      alpha: 0,
+      duration: 150,
+      onComplete: () => line.destroy(),
+    });
+
+    // Impact flash on target
+    const flash = this.scene.add.circle(target.x, target.y, 12, 0xffffff, 0.6);
+    flash.setDepth(4);
+    this.scene.tweens.add({
+      targets: flash,
+      alpha: 0,
+      scaleX: 1.5,
+      scaleY: 1.5,
+      duration: 150,
+      onComplete: () => flash.destroy(),
+    });
+  }
+
+  executeAbility(caster: Hero, ability: AbilityDef, targetX: number, targetY: number): void {
+    const angle = Math.atan2(targetY - caster.y, targetX - caster.x);
+
+    // Screen shake for ultimates (slot E)
+    if (ability.slot === 'E') {
+      this.scene.cameras.main.shake(300, 0.01);
+    }
+
+    switch (ability.type) {
+      case AbilityType.PROJECTILE:
+        this.fireProjectile(caster, ability, angle);
+        break;
+      case AbilityType.AREA:
+        this.createAreaEffect(caster, ability, targetX, targetY);
+        break;
+      case AbilityType.BUFF:
+        this.applyBuff(caster, ability, targetX, targetY);
+        break;
+      case AbilityType.DASH:
+        this.executeDash(caster, ability, angle);
+        break;
+      case AbilityType.SELF_BUFF:
+        this.applySelfBuff(caster, ability);
+        break;
+    }
+  }
+
+  private fireProjectile(caster: Hero, ability: AbilityDef, angle: number): void {
+    const proj = new Projectile(
+      this.scene,
+      caster.x + Math.cos(angle) * 25,
+      caster.y + Math.sin(angle) * 25,
+      angle,
+      ability,
+      caster
+    );
+    this.projectiles.push(proj);
+  }
+
+  private createAreaEffect(caster: Hero, ability: AbilityDef, targetX: number, targetY: number): void {
+    // Clamp to range
+    const dist = Phaser.Math.Distance.Between(caster.x, caster.y, targetX, targetY);
+    const maxRange = ability.range || 300;
+    let finalX = targetX;
+    let finalY = targetY;
+
+    if (dist > maxRange) {
+      const angle = Math.atan2(targetY - caster.y, targetX - caster.x);
+      finalX = caster.x + Math.cos(angle) * maxRange;
+      finalY = caster.y + Math.sin(angle) * maxRange;
+    }
+
+    // If no range specified, center on caster
+    if (!ability.range) {
+      finalX = caster.x;
+      finalY = caster.y;
+    }
+
+    const area = new AreaEffect(this.scene, finalX, finalY, ability, caster);
+    this.areaEffects.push(area);
+  }
+
+  private applyBuff(caster: Hero, ability: AbilityDef, targetX: number, targetY: number): void {
+    if (!ability.buffType) return;
+
+    const battleScene = this.scene as any;
+    const allies = battleScene.getAllies(caster.team) as Hero[];
+
+    if (ability.range) {
+      // Find closest ally to target point within range
+      let bestTarget: Hero | null = null;
+      let bestDist = Infinity;
+
+      // Include caster as possible target
+      const allTargets = [...allies, caster];
+      for (const ally of allTargets) {
+        if (!ally.isAlive) continue;
+        const dist = Phaser.Math.Distance.Between(targetX, targetY, ally.x, ally.y);
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestTarget = ally;
+        }
+      }
+
+      if (bestTarget) {
+        bestTarget.addBuff({
+          type: ability.buffType,
+          value: ability.buffValue || 0,
+          duration: ability.buffDuration || 1,
+          remaining: ability.buffDuration || 1,
+          sourceId: caster.getUniqueId(),
+        });
+
+        // Visual
+        this.showBuffEffect(bestTarget, ability.buffType);
+      }
+    } else {
+      // Apply to all nearby allies
+      const range = 200;
+      const allTargets = [...allies, caster];
+      for (const ally of allTargets) {
+        if (!ally.isAlive) continue;
+        const dist = caster.distanceTo(ally);
+        if (dist <= range) {
+          ally.addBuff({
+            type: ability.buffType,
+            value: ability.buffValue || 0,
+            duration: ability.buffDuration || 1,
+            remaining: ability.buffDuration || 1,
+            sourceId: caster.getUniqueId(),
+          });
+        }
+      }
+    }
+  }
+
+  private executeDash(caster: Hero, ability: AbilityDef, angle: number): void {
+    const distance = ability.dashDistance || 200;
+    const speed = ability.dashSpeed || 800;
+    const duration = (distance / speed) * 1000;
+
+    const targetX = caster.x + Math.cos(angle) * distance;
+    const targetY = caster.y + Math.sin(angle) * distance;
+
+    // Track which enemies have been hit to prevent multi-hit
+    const hitEnemies = new Set<string>();
+
+    // Dash movement
+    this.scene.tweens.add({
+      targets: caster,
+      x: targetX,
+      y: targetY,
+      duration: duration,
+      ease: 'Power1',
+      onUpdate: () => {
+        caster.body?.reset(caster.x, caster.y);
+        // Check for enemies along path
+        if (ability.damage) {
+          const battleScene = this.scene as any;
+          const enemies = battleScene.getEnemies(caster.team) as Hero[];
+          for (const enemy of enemies) {
+            if (!enemy.isAlive) continue;
+            if (hitEnemies.has(enemy.getUniqueId())) continue;
+            const dist = Phaser.Math.Distance.Between(caster.x, caster.y, enemy.x, enemy.y);
+            if (dist < 40) {
+              hitEnemies.add(enemy.getUniqueId());
+              enemy.takeDamage(ability.damage, caster.getUniqueId());
+              if (ability.buffType) {
+                enemy.addBuff({
+                  type: ability.buffType,
+                  value: ability.buffValue || 0,
+                  duration: ability.buffDuration || 1,
+                  remaining: ability.buffDuration || 1,
+                  sourceId: caster.getUniqueId(),
+                });
+              }
+            }
+          }
+        }
+      },
+      onComplete: () => {
+        // Update physics body position
+        caster.body?.reset(caster.x, caster.y);
+      },
+    });
+
+    // Dash trail visual
+    const trail = this.scene.add.line(
+      0, 0,
+      caster.x, caster.y,
+      targetX, targetY,
+      caster.stats.color, 0.4
+    );
+    trail.setOrigin(0, 0);
+    trail.setLineWidth(3);
+    trail.setDepth(2);
+    this.scene.tweens.add({
+      targets: trail,
+      alpha: 0,
+      duration: 400,
+      onComplete: () => trail.destroy(),
+    });
+  }
+
+  private applySelfBuff(caster: Hero, ability: AbilityDef): void {
+    if (!ability.buffType) return;
+
+    caster.addBuff({
+      type: ability.buffType,
+      value: ability.buffValue || 0,
+      duration: ability.buffDuration || 1,
+      remaining: ability.buffDuration || 1,
+      sourceId: caster.getUniqueId(),
+    });
+
+    this.showBuffEffect(caster, ability.buffType);
+  }
+
+  private showBuffEffect(hero: Hero, buffType: BuffType): void {
+    const color = buffType === BuffType.SHIELD ? 0xffffff :
+                  buffType === BuffType.STAT_BUFF ? 0xffff00 :
+                  buffType === BuffType.HEAL_OVER_TIME ? 0x00ff00 : 0xaaaaaa;
+
+    const ring = this.scene.add.circle(hero.x, hero.y, 30, color, 0.3);
+    ring.setDepth(4);
+    this.scene.tweens.add({
+      targets: ring,
+      scaleX: 1.5,
+      scaleY: 1.5,
+      alpha: 0,
+      duration: 500,
+      onComplete: () => ring.destroy(),
+    });
+  }
+}

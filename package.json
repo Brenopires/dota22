@@ -1,0 +1,18 @@
+{
+  "name": "dota22",
+  "version": "1.0.0",
+  "description": "DOTA22: Mini Battle Arena",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "phaser": "^3.87.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0"
+  }
+}
