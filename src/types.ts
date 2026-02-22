@@ -125,3 +125,30 @@ export interface ObstacleDef {
   width: number;
   height: number;
 }
+
+// ---------------------------------------------------------------------------
+// Phase 1 additions — EventBus / match state foundations
+// ---------------------------------------------------------------------------
+
+export enum MatchPhase {
+  PRE_MATCH = 'pre_match',
+  ACTIVE    = 'active',
+  ENDED     = 'ended',
+}
+
+import type { Hero } from './entities/Hero';
+// MatchStateMachine will be added to IBattleScene in plan 01-03 when the class exists.
+export interface IBattleScene {
+  heroes: Hero[];
+  teamA: Hero[];
+  teamB: Hero[];
+  player: Hero;
+  spawnA: { x: number; y: number }[];
+  spawnB: { x: number; y: number }[];
+  teamAKills: number;
+  teamBKills: number;
+  matchTimer: number;
+  matchOver: boolean;
+  getEnemies(team: Team): Hero[];
+  getAllies(team: Team, excludeSelf?: Hero): Hero[];
+}

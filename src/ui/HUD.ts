@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../constants';
+import { IBattleScene } from '../types';
 import { AbilityBar } from './AbilityBar';
 
 interface KillFeedEntry {
@@ -8,7 +9,7 @@ interface KillFeedEntry {
 }
 
 export class HUD {
-  private scene: any; // BattleScene
+  private scene: IBattleScene & Phaser.Scene;
   private timerText: Phaser.GameObjects.Text;
   private killsText: Phaser.GameObjects.Text;
   private hpText: Phaser.GameObjects.Text;
@@ -19,7 +20,7 @@ export class HUD {
   private hpGraphics: Phaser.GameObjects.Graphics;
   private killFeedEntries: KillFeedEntry[] = [];
 
-  constructor(scene: any) {
+  constructor(scene: IBattleScene & Phaser.Scene) {
     this.scene = scene;
 
     // Timer background circle

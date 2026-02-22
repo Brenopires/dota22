@@ -39,6 +39,8 @@ export class BattleScene extends Phaser.Scene {
     TWO: Phaser.Input.Keyboard.Key;
     THREE: Phaser.Input.Keyboard.Key;
   };
+  spawnA: { x: number; y: number }[] = [];
+  spawnB: { x: number; y: number }[] = [];
   obstacles!: Phaser.Physics.Arcade.StaticGroup;
   projectiles!: Phaser.GameObjects.Group;
   areaEffects!: Phaser.GameObjects.Group;
@@ -75,6 +77,8 @@ export class BattleScene extends Phaser.Scene {
 
     const arenaConfig = ArenaGenerator.generate(this.matchConfig.arenaTheme, this.matchConfig.arenaLayout);
     ArenaGenerator.render(this, arenaConfig, this.obstacles);
+    this.spawnA = arenaConfig.spawnA;
+    this.spawnB = arenaConfig.spawnB;
 
     // Set world bounds
     this.physics.world.setBounds(0, 0, ARENA_WIDTH, ARENA_HEIGHT);
