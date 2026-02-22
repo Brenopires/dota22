@@ -13,7 +13,7 @@ export class Hero extends Phaser.GameObjects.Container {
   currentMana: number;
   faceDirection = 0;
 
-  private circle: Phaser.GameObjects.Arc;
+  private heroVisual: Phaser.GameObjects.Image | Phaser.GameObjects.Arc;
   private label: Phaser.GameObjects.Text;
   private teamIndicator: Phaser.GameObjects.Arc;
   private glowImage: Phaser.GameObjects.Image | null = null;
@@ -90,13 +90,19 @@ export class Hero extends Phaser.GameObjects.Container {
       this.add(playerRing);
     }
 
-    // Hero circle
-    this.circle = scene.add.circle(0, 0, HERO_RADIUS, stats.color);
-    this.add(this.circle);
+    // Hero visual (procedural texture or fallback circle)
+    const heroTextureKey = `hero_${stats.id}`;
+    if (scene.textures.exists(heroTextureKey)) {
+      this.heroVisual = scene.add.image(0, 0, heroTextureKey);
+      this.add(this.heroVisual);
+    } else {
+      this.heroVisual = scene.add.circle(0, 0, HERO_RADIUS, stats.color);
+      this.add(this.heroVisual);
+    }
 
     // Breathing idle animation
     scene.tweens.add({
-      targets: this.circle,
+      targets: this.heroVisual,
       scaleX: { from: 1.0, to: 1.04 },
       scaleY: { from: 1.0, to: 1.04 },
       duration: 1200,
@@ -238,7 +244,7 @@ export class Hero extends Phaser.GameObjects.Container {
     } else {
       this.label.setText(this.stats.label);
     }
-    this.circle.setAlpha(1);
+    this.heroVisual.setAlpha(1);
   }
 
   private updateBuffs(dt: number): void {
