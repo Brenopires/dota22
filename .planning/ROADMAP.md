@@ -29,7 +29,7 @@ Rift Clash evolves from a working arena brawler into a competitive asymmetric he
 
 **Depends on:** Nothing (first phase). Replaces the existing "death = match over" behavior.
 
-**Requirements:** FLOW-01, FLOW-02, FLOW-04
+**Requirements:** FLOW-01, FLOW-02, FLOW-04a
 
 **Success Criteria** (what must be TRUE):
 1. A match runs for exactly 5 minutes without crashing — the countdown timer is visible and accurate throughout.
@@ -184,7 +184,7 @@ Plans:
 
 **Depends on:** Phase 1 (MatchStateMachine adds SUDDEN_DEATH state), Phase 4 (Boss Tier 1 validated), Phase 6 (neutral camp scoring in place)
 
-**Requirements:** FLOW-03, FLOW-05, FLOW-06, BOSS-03, BOSS-04
+**Requirements:** FLOW-03, FLOW-04b, FLOW-05, FLOW-06, BOSS-03, BOSS-04
 
 **Success Criteria** (what must be TRUE):
 1. The HUD shows a live score for both teams tracking kills (1pt), boss kills (3pt), tower damage thresholds (2pt), and neutral camp control (1pt).
