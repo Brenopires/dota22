@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 ## Current Position
 
 Phase: 1 of 8 (Foundation)
-Plan: 1 of 5 in current phase
+Plan: 3 of 5 in current phase
 Status: In progress
-Last activity: 2026-02-22 — Completed 01-01 (EventBus + IBattleScene foundation)
+Last activity: 2026-02-22 — Completed 01-02 (BaseEntity abstract class + Hero refactor)
 
-Progress: [█░░░░░░░░░] 3%
+Progress: [██░░░░░░░░] 6%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 4 min
-- Total execution time: 4 min
+- Total plans completed: 2
+- Average duration: 3 min
+- Total execution time: 6 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-foundation | 1/5 | 4 min | 4 min |
+| 01-foundation | 2/5 | 6 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 4 min
-- Trend: —
+- Last 5 plans: 4 min, 2 min
+- Trend: fast
 
 *Updated after each plan completion*
 
@@ -49,6 +49,10 @@ Recent decisions affecting current work:
 - [01-01]: Use Phaser.Events.EventEmitter (not bare EventEmitter3) — already bundled in Phaser 3.90.0, no new dependency
 - [01-01]: Module-level EventBus singleton over game.events — survives scene restarts cleanly
 - [01-01]: Scene typing pattern: IBattleScene & Phaser.Scene intersection instead of any, applied to HUD first
+- [01-02]: Floating damage/heal visuals stay on Hero via override (not BaseEntity) — Hero-specific behavior, not shared logic
+- [01-02]: Physics body setup stays in Hero constructor — HERO_RADIUS is Hero-specific; future entity types configure their own bodies
+- [01-02]: getArmor() defaults to 0 in BaseEntity — Hero overrides with stats.armor; clean extension point for bosses/towers
+- [01-02]: die() is idempotent via isAlive guard — prevents double HERO_KILLED emission on AoE hits
 
 ### Pending Todos
 
@@ -63,5 +67,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-22
-Stopped at: Completed 01-01-PLAN.md (EventBus singleton, IBattleScene interface, MatchPhase enum)
+Stopped at: Completed 01-02-PLAN.md (BaseEntity abstract class, Hero refactored to extend it, onHeroKill coupling removed)
 Resume file: None
