@@ -37,14 +37,14 @@ Rift Clash evolves from a working arena brawler into a competitive asymmetric he
 3. The match progresses through PRE_MATCH → ACTIVE → ENDED states with no invalid transitions.
 4. On "Play Again," no timers from the previous match carry over — respawn timers, tick handlers, and event listeners are fully cleaned up.
 
-**Plans:** TBD
+**Plans:** 5 plans
 
 Plans:
-- [ ] 01-01: EventBus singleton (typed Phaser.Events.EventEmitter)
-- [ ] 01-02: BaseEntity abstract class (Hero refactored to extend it)
-- [ ] 01-03: MatchStateMachine (PRE_MATCH → ACTIVE → ENDED, timer cleanup on restart)
-- [ ] 01-04: Respawn system (10s max timer, spawn-point re-entry, replaces instant-defeat)
-- [ ] 01-05: 5-minute countdown HUD + match timer system
+- [ ] 01-01-PLAN.md — EventBus singleton + IBattleScene interface + MatchPhase enum
+- [ ] 01-02-PLAN.md — BaseEntity abstract class + Hero refactored to extend it
+- [ ] 01-03-PLAN.md — MatchStateMachine (PRE_MATCH → ACTIVE → ENDED) + BattleScene integration + timer cleanup
+- [ ] 01-04-PLAN.md — Respawn system (5s timer, spawn-point re-entry, replaces instant-defeat)
+- [ ] 01-05-PLAN.md — 5-minute countdown HUD (MM:SS format) + player respawn overlay
 
 ---
 
@@ -235,7 +235,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/5 | Not started | - |
+| 1. Foundation | 0/5 | Planned | - |
 | 2. Hero Identity | 0/6 | Not started | - |
 | 3. Asymmetric Teams | 0/5 | Not started | - |
 | 4. Boss & Towers | 0/7 | Not started | - |
