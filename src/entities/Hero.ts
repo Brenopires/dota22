@@ -2,14 +2,14 @@ import Phaser from 'phaser';
 import { HERO_RADIUS, HERO_LABEL_SIZE, MELEE_RANGE } from '../constants';
 import { HeroStats, Team, ActiveBuff, BuffType, AbilityDef } from '../types';
 import { HealthBar } from './HealthBar';
+import { BaseEntity } from './BaseEntity';
 
-export class Hero extends Phaser.GameObjects.Container {
+export class Hero extends BaseEntity {
+  readonly entityType = 'hero' as const;
+
   stats: HeroStats;
-  team: Team;
   isPlayer: boolean;
-  isAlive = true;
 
-  currentHP: number;
   currentMana: number;
   faceDirection = 0;
 
@@ -26,17 +26,10 @@ export class Hero extends Phaser.GameObjects.Container {
   abilityCooldowns: number[] = [0, 0, 0];
   autoAttackTimer = 0;
 
-  buffs: ActiveBuff[] = [];
-  shield = 0;
-
-  body!: Phaser.Physics.Arcade.Body;
-
   constructor(scene: Phaser.Scene, x: number, y: number, stats: HeroStats, team: Team, isPlayer: boolean) {
-    super(scene, x, y);
+    super(scene, x, y, stats.maxHP, team);
     this.stats = stats;
-    this.team = team;
     this.isPlayer = isPlayer;
-    this.currentHP = stats.maxHP;
     this.currentMana = stats.maxMana;
 
     // Glow behind hero
@@ -161,7 +154,7 @@ export class Hero extends Phaser.GameObjects.Container {
       this.autoAttackTimer -= dt;
     }
 
-    // Update buffs
+    // Update buffs (inherited from BaseEntity)
     this.updateBuffs(dt);
 
     // Update health bar
@@ -247,39 +240,6 @@ export class Hero extends Phaser.GameObjects.Container {
     this.heroVisual.setAlpha(1);
   }
 
-  private updateBuffs(dt: number): void {
-    this.shield = 0;
-
-    for (let i = this.buffs.length - 1; i >= 0; i--) {
-      const buff = this.buffs[i];
-      buff.remaining -= dt;
-
-      // Shield tracking
-      if (buff.type === BuffType.SHIELD) {
-        this.shield += buff.value;
-      }
-
-      // DoT / HoT tick
-      if (buff.type === BuffType.DOT || buff.type === BuffType.HEAL_OVER_TIME) {
-        if (!buff.tickTimer) buff.tickTimer = 0;
-        buff.tickTimer += dt;
-        const interval = buff.tickInterval || 1;
-        if (buff.tickTimer >= interval) {
-          buff.tickTimer -= interval;
-          if (buff.type === BuffType.DOT) {
-            this.takeDamage(buff.value, buff.sourceId);
-          } else {
-            this.heal(buff.value);
-          }
-        }
-      }
-
-      if (buff.remaining <= 0) {
-        this.buffs.splice(i, 1);
-      }
-    }
-  }
-
   useAbility(slot: number, targetX: number, targetY: number): boolean {
     if (!this.isAlive || this.isStunned() || this.isSilenced()) return false;
     if (slot < 0 || slot >= this.stats.abilities.length) return false;
@@ -300,51 +260,34 @@ export class Hero extends Phaser.GameObjects.Container {
     return true;
   }
 
-  takeDamage(rawDamage: number, sourceId?: string): number {
+  /**
+   * Override takeDamage to show floating damage numbers (Hero-specific visual behavior).
+   * Combat logic delegates to BaseEntity.takeDamage().
+   */
+  override takeDamage(rawDamage: number, sourceId?: string): number {
     if (!this.isAlive) return 0;
-
-    // Shield absorb
-    let damage = rawDamage;
-    if (this.shield > 0) {
-      const absorbed = Math.min(this.shield, damage);
-      for (const buff of this.buffs) {
-        if (buff.type === BuffType.SHIELD && buff.value > 0) {
-          const take = Math.min(buff.value, absorbed);
-          buff.value -= take;
-          damage -= take;
-          if (damage <= 0) break;
-        }
-      }
-      if (damage <= 0) return 0;
+    const finalDamage = super.takeDamage(rawDamage, sourceId);
+    if (finalDamage > 0) {
+      this.showDamageNumber(finalDamage);
     }
-
-    // Apply armor
-    const finalDamage = Math.max(1, damage - this.getArmor());
-    this.currentHP -= finalDamage;
-
-    // Floating damage number
-    this.showDamageNumber(finalDamage);
-
-    if (this.currentHP <= 0) {
-      this.currentHP = 0;
-      this.die(sourceId);
-    }
-
     return finalDamage;
   }
 
-  heal(amount: number): void {
+  /**
+   * Override heal to show floating heal numbers (Hero-specific visual behavior).
+   */
+  override heal(amount: number): void {
     if (!this.isAlive) return;
-    this.currentHP = Math.min(this.stats.maxHP, this.currentHP + amount);
+    super.heal(amount);
     this.showHealNumber(amount);
   }
 
-  private die(killerId?: string): void {
-    this.isAlive = false;
-    this.body?.setVelocity(0, 0);
-    this.body?.setEnable(false);
-    this.body?.setCircle(0);
-
+  /**
+   * onDeath: Hero-specific visual/VFX behavior on death.
+   * Called by BaseEntity.die() after emitting HERO_KILLED on EventBus.
+   * Does NOT call battleScene.onHeroKill() — the EventBus event replaces that coupling.
+   */
+  protected onDeath(killerId?: string): void {
     // VFX death explosion
     const battleScene = this.scene as any;
     if (battleScene.vfxManager) {
@@ -368,28 +311,6 @@ export class Hero extends Phaser.GameObjects.Container {
     // Slow motion if player dies
     if (this.isPlayer && battleScene.vfxManager) {
       battleScene.vfxManager.slowMotion(1500, 0.3);
-    }
-
-    // Notify battle scene
-    if (battleScene.onHeroKill) {
-      let killer: Hero | undefined;
-      if (killerId) {
-        killer = battleScene.heroes?.find((h: Hero) => h.getUniqueId() === killerId);
-      }
-      if (!killer) {
-        const enemies = this.team === 'A' ? battleScene.teamB : battleScene.teamA;
-        if (enemies) {
-          let minDist = Infinity;
-          for (const e of enemies as Hero[]) {
-            if (!e.isAlive) continue;
-            const d = Phaser.Math.Distance.Between(this.x, this.y, e.x, e.y);
-            if (d < minDist) { minDist = d; killer = e; }
-          }
-        }
-      }
-      if (killer) {
-        battleScene.onHeroKill(killer, this);
-      }
     }
   }
 
@@ -465,30 +386,8 @@ export class Hero extends Phaser.GameObjects.Container {
     });
   }
 
-  addBuff(buff: ActiveBuff): void {
-    this.buffs.push({ ...buff });
-  }
-
-  isStunned(): boolean {
-    return this.buffs.some(b => b.type === BuffType.STUN && b.remaining > 0);
-  }
-
-  isRooted(): boolean {
-    return this.buffs.some(b => b.type === BuffType.ROOT && b.remaining > 0);
-  }
-
-  isSilenced(): boolean {
-    return this.buffs.some(b => b.type === BuffType.SILENCE && b.remaining > 0);
-  }
-
-  getSlowFactor(): number {
-    let slowFactor = 1;
-    for (const buff of this.buffs) {
-      if (buff.type === BuffType.SLOW && buff.remaining > 0) {
-        slowFactor *= (1 - buff.value);
-      }
-    }
-    return slowFactor;
+  getArmor(): number {
+    return this.stats.armor || 0;
   }
 
   getMoveSpeed(): number {
@@ -504,10 +403,6 @@ export class Hero extends Phaser.GameObjects.Container {
       }
     }
     return damage;
-  }
-
-  getArmor(): number {
-    return this.stats.armor || 0;
   }
 
   getAttackRange(): number {
