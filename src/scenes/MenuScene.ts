@@ -70,7 +70,7 @@ export class MenuScene extends Phaser.Scene {
     this.createButton(GAME_WIDTH / 2, 420, 'PLAY', () => {
       this.cameras.main.fadeOut(400, 0, 0, 0, (_cam: any, progress: number) => {
         if (progress === 1) {
-          this.scene.start('BattleScene');
+          this.scene.start('DraftScene');
         }
       });
     });

@@ -49,7 +49,7 @@ export class BattleScene extends Phaser.Scene {
     super({ key: 'BattleScene' });
   }
 
-  create(): void {
+  create(data?: { matchConfig?: ReturnType<typeof MatchOrchestrator.generateMatch> }): void {
     this.matchOver = false;
     this.matchTimer = MATCH_DURATION;
     this.teamAKills = 0;
@@ -62,8 +62,8 @@ export class BattleScene extends Phaser.Scene {
     this.aiControllers = [];
     this.aiTimer = 0;
 
-    // Generate match config
-    this.matchConfig = MatchOrchestrator.generateMatch();
+    // Use provided match config or generate new one
+    this.matchConfig = data?.matchConfig ?? MatchOrchestrator.generateMatch();
 
     // Create VFX manager
     this.vfxManager = new VFXManager(this);
