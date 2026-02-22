@@ -1,0 +1,144 @@
+# Requirements: Rift Clash
+
+**Defined:** 2026-02-22
+**Core Value:** Asymmetric chaos that feels like a skill test — being thrown into a 1v3 as the solo player at high MMR and winning through outplay, not handicaps.
+
+## v1 Requirements
+
+Requirements for initial release. Each maps to roadmap phases.
+
+### Match Flow
+
+- [ ] **FLOW-01**: Match has a 5-minute hard cap with visible countdown timer
+- [ ] **FLOW-02**: Heroes respawn after death with max 10-second respawn timer
+- [ ] **FLOW-03**: Match ends with score calculation: hero kill (1pt), boss kill (3pt), tower damage threshold (2pt), neutral control majority (1pt)
+- [ ] **FLOW-04**: Match progresses through states: PRE_MATCH → ACTIVE → SUDDEN_DEATH → ENDED
+- [ ] **FLOW-05**: Tie at 5:00 triggers Sudden Death mode (no respawns, last team standing wins)
+- [ ] **FLOW-06**: Match can end early via tower destruction (instant win) or boss tier 3 kill (triggers Sudden Death)
+
+### Heroes
+
+- [ ] **HERO-01**: 6-10 playable heroes with distinct playstyles covering different combat roles
+- [ ] **HERO-02**: Each hero has 3 basic abilities (Q/W/E) + 1 ultimate (R) + 1 passive
+- [ ] **HERO-03**: Heroes gain XP from combat kills and objective interactions (no gold system)
+- [ ] **HERO-04**: Heroes level up during match with stat scaling (HP, damage, ability power)
+- [ ] **HERO-05**: Each match assigns a random Battle Trait modifier to each hero (e.g., double stun duration, lifesteal→shield, spell burn, blink reset on kill)
+- [ ] **HERO-06**: Each hero receives a random Gem power-up at match start providing a stat or ability modifier
+
+### Asymmetric Teams
+
+- [ ] **ASYM-01**: System randomly assigns team sizes each match (1v1, 2v1, 3v2, 4v1, 5v5, any combination)
+- [ ] **ASYM-02**: Solo/smaller team receives MMR-situational adaptive scaling (high MMR = less help, low MMR = more help)
+- [ ] **ASYM-03**: AI teammates distribute targets to prevent focus-fire killing solo players in under 5 seconds
+
+### Boss System
+
+- [ ] **BOSS-01**: Central boss spawns immediately at match start and scales in power every minute
+- [ ] **BOSS-02**: First boss kill grants team-wide stat buff + 1 revival token (mini Aegis)
+- [ ] **BOSS-03**: Second boss kill grants permanent damage amplification and boss begins roaming the map
+- [ ] **BOSS-04**: Third boss kill triggers Sudden Death mode
+- [ ] **BOSS-05**: Boss has multi-phase AI with escalating attack patterns as it grows stronger
+
+### Tower System
+
+- [ ] **TOWR-01**: Each team has one Core Tower that deals high damage to nearby enemies
+- [ ] **TOWR-02**: Tower regenerates HP slowly when not under attack
+- [ ] **TOWR-03**: Tower is temporarily disabled when boss is killed
+- [ ] **TOWR-04**: Destroying the enemy Core Tower results in instant match victory
+
+### Neutral Camps
+
+- [ ] **CAMP-01**: 4 neutral buff camps on the map: Damage, Shield, Haste, Cooldown
+- [ ] **CAMP-02**: Neutral camps respawn every 60 seconds after being cleared
+- [ ] **CAMP-03**: Killing a neutral camp grants a 30-second buff to the killing hero's team
+
+### Draft
+
+- [ ] **DRFT-01**: Player is presented 3 random heroes and picks 1 before each match
+
+### Ranked
+
+- [ ] **RANK-01**: Player progresses through rank tiers: Bronze, Silver, Gold, Platinum, Apex
+- [ ] **RANK-02**: MMR shifts ±40 per match for fast climbing
+
+## v2 Requirements
+
+Deferred to future release. Tracked but not in current roadmap.
+
+### Multiplayer
+
+- **MULT-01**: Online real-time multiplayer with matchmaking
+- **MULT-02**: Lobby system for custom team compositions
+
+### Content
+
+- **CONT-01**: Additional heroes beyond initial 6-10 roster
+- **CONT-02**: Map variants with different layouts and zone configurations
+- **CONT-03**: Seasonal Battle Trait rotations
+
+### Social
+
+- **SOCL-01**: Spectator mode for watching live matches
+- **SOCL-02**: Replay system for reviewing past matches
+- **SOCL-03**: Tournament/bracket mode
+
+## Out of Scope
+
+Explicitly excluded. Documented to prevent scope creep.
+
+| Feature | Reason |
+|---------|--------|
+| Creep/minion waves | Contradicts "no passive farming" core philosophy |
+| Lanes and barracks | Pure arena design — no lane-pushing mechanics |
+| Item shop / gold system | Replaced by XP-only + random gem system |
+| High ground mechanics | Pure arena defense, no terrain advantage |
+| Surrender votes | 5-minute matches don't need them |
+| Mobile app | Browser-first, mobile is a future platform |
+| Voice/text chat | No multiplayer in v1, no comms needed |
+| Creep last-hitting | Gold-free design eliminates farming entirely |
+
+## Traceability
+
+Which phases cover which requirements. Updated during roadmap creation.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| FLOW-01 | — | Pending |
+| FLOW-02 | — | Pending |
+| FLOW-03 | — | Pending |
+| FLOW-04 | — | Pending |
+| FLOW-05 | — | Pending |
+| FLOW-06 | — | Pending |
+| HERO-01 | — | Pending |
+| HERO-02 | — | Pending |
+| HERO-03 | — | Pending |
+| HERO-04 | — | Pending |
+| HERO-05 | — | Pending |
+| HERO-06 | — | Pending |
+| ASYM-01 | — | Pending |
+| ASYM-02 | — | Pending |
+| ASYM-03 | — | Pending |
+| BOSS-01 | — | Pending |
+| BOSS-02 | — | Pending |
+| BOSS-03 | — | Pending |
+| BOSS-04 | — | Pending |
+| BOSS-05 | — | Pending |
+| TOWR-01 | — | Pending |
+| TOWR-02 | — | Pending |
+| TOWR-03 | — | Pending |
+| TOWR-04 | — | Pending |
+| CAMP-01 | — | Pending |
+| CAMP-02 | — | Pending |
+| CAMP-03 | — | Pending |
+| DRFT-01 | — | Pending |
+| RANK-01 | — | Pending |
+| RANK-02 | — | Pending |
+
+**Coverage:**
+- v1 requirements: 30 total
+- Mapped to phases: 0
+- Unmapped: 30
+
+---
+*Requirements defined: 2026-02-22*
+*Last updated: 2026-02-22 after initial definition*
