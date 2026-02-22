@@ -10,27 +10,27 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 ## Current Position
 
 Phase: 1 of 8 (Foundation)
-Plan: 0 of 5 in current phase
-Status: Ready to plan
-Last activity: 2026-02-22 — Roadmap created; 30 requirements mapped across 8 phases
+Plan: 1 of 5 in current phase
+Status: In progress
+Last activity: 2026-02-22 — Completed 01-01 (EventBus + IBattleScene foundation)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] 3%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: —
-- Total execution time: —
+- Total plans completed: 1
+- Average duration: 4 min
+- Total execution time: 4 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| — | — | — | — |
+| 01-foundation | 1/5 | 4 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: —
+- Last 5 plans: 4 min
 - Trend: —
 
 *Updated after each plan completion*
@@ -46,6 +46,9 @@ Recent decisions affecting current work:
 - [Roadmap]: Boss Tier 2 roaming deferred to Phase 7 (after Tier 1 economy validated in Phase 4)
 - [Roadmap]: AI target distribution ships in Phase 3 with asymmetric teams — unplayable without it
 - [Roadmap]: TraitSystem reuses combat event hooks built in Phase 2 — Phase 5 depends on Phase 2 completing hooks
+- [01-01]: Use Phaser.Events.EventEmitter (not bare EventEmitter3) — already bundled in Phaser 3.90.0, no new dependency
+- [01-01]: Module-level EventBus singleton over game.events — survives scene restarts cleanly
+- [01-01]: Scene typing pattern: IBattleScene & Phaser.Scene intersection instead of any, applied to HUD first
 
 ### Pending Todos
 
@@ -60,5 +63,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-22
-Stopped at: Roadmap created, STATE.md initialized, REQUIREMENTS.md traceability updated
+Stopped at: Completed 01-01-PLAN.md (EventBus singleton, IBattleScene interface, MatchPhase enum)
 Resume file: None
