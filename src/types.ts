@@ -51,13 +51,15 @@ export interface HeroStats {
   attackRange: number;
   moveSpeed: number;
   abilities: AbilityDef[];
+  passive: PassiveDef;
 }
 
 export interface AbilityDef {
   id: string;
   name: string;
   type: AbilityType;
-  slot: 'Q' | 'W' | 'E';
+  slot: 'Q' | 'W' | 'E' | 'R';
+  isUltimate?: boolean;
   manaCost: number;
   cooldown: number; // seconds
   damage?: number;
@@ -72,6 +74,26 @@ export interface AbilityDef {
   dashDistance?: number;
   dashSpeed?: number;
   description: string;
+}
+
+export type PassiveTrigger = 'on_kill' | 'on_hit' | 'on_damage_taken';
+
+export interface PassiveDef {
+  id: string;
+  name: string;
+  trigger: PassiveTrigger;
+  description: string;
+  // Effect fields — interpreted by Hero.applyPassiveEffect()
+  healOnKill?: number;          // heal self X HP on kill
+  buffOnKill?: ActiveBuff;      // apply buff to self on kill
+  damageReturnRatio?: number;   // reflect X% damage back (on_damage_taken)
+  bonusDamageOnHit?: number;    // extra flat damage (on_hit)
+  buffOnHit?: ActiveBuff;       // apply debuff to enemy (on_hit)
+  speedBurstOnKill?: number;    // +X to moveSpeed for 3s (on_kill)
+  cooldownResetOnKill?: boolean;// reset all cooldowns (on_kill)
+  manaRestoreOnKill?: number;   // restore X mana (on_kill)
+  armorStackOnDamage?: number;  // gain +X armor stack (on_damage_taken)
+  passiveCooldown?: number;     // seconds before passive can trigger again (prevents spam)
 }
 
 export interface ActiveBuff {
