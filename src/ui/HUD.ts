@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../constants';
 import { IBattleScene } from '../types';
 import { AbilityBar } from './AbilityBar';
+import { BossHealthBar } from './BossHealthBar';
 import { XP_THRESHOLDS } from '../systems/XPSystem';
 
 interface KillFeedEntry {
@@ -25,6 +26,11 @@ export class HUD {
   private killFeedEntries: KillFeedEntry[] = [];
   private respawnOverlay: Phaser.GameObjects.Container | null = null;
   private respawnCountdownText: Phaser.GameObjects.Text | null = null;
+  private bossHealthBar: BossHealthBar;
+  private towerAGraphics: Phaser.GameObjects.Graphics;
+  private towerBGraphics: Phaser.GameObjects.Graphics;
+  private towerAText: Phaser.GameObjects.Text;
+  private towerBText: Phaser.GameObjects.Text;
 
   constructor(scene: IBattleScene & Phaser.Scene) {
     this.scene = scene;
@@ -98,6 +104,34 @@ export class HUD {
 
     // Ability bar
     this.abilityBar = new AbilityBar(scene, scene.player);
+
+    // Boss health bar (centered below timer)
+    this.bossHealthBar = new BossHealthBar(scene);
+
+    // Tower status indicators (flanking kill score)
+    // Tower A indicator (left of score)
+    const towerBarWidth = 60;
+    const towerABarX = GAME_WIDTH / 2 - 100 - towerBarWidth / 2;
+    const towerBBarX = GAME_WIDTH / 2 + 100 - towerBarWidth / 2;
+
+    this.towerAGraphics = scene.add.graphics();
+    this.towerAGraphics.setScrollFactor(0).setDepth(200);
+
+    this.towerAText = scene.add.text(GAME_WIDTH / 2 - 100, 46, 'T-A', {
+      fontSize: '9px',
+      color: '#00aaff',
+      fontFamily: 'monospace',
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(200);
+
+    // Tower B indicator (right of score)
+    this.towerBGraphics = scene.add.graphics();
+    this.towerBGraphics.setScrollFactor(0).setDepth(200);
+
+    this.towerBText = scene.add.text(GAME_WIDTH / 2 + 100, 46, 'T-B', {
+      fontSize: '9px',
+      color: '#ff4444',
+      fontFamily: 'monospace',
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(200);
   }
 
   update(): void {
@@ -193,6 +227,36 @@ export class HUD {
     // Ability bar
     this.abilityBar.update();
 
+    // Boss health bar
+    const battleScene = this.scene as any;
+    if (battleScene.boss) {
+      const boss = battleScene.boss;
+      if (boss.isAlive) {
+        this.bossHealthBar.setVisible(true);
+        this.bossHealthBar.update(boss.currentHP, boss.maxHP, boss.phase);
+      } else {
+        this.bossHealthBar.setVisible(false);
+      }
+    }
+
+    // Tower status indicators
+    this.updateTowerIndicator(
+      battleScene.towerA,
+      this.towerAGraphics,
+      this.towerAText,
+      GAME_WIDTH / 2 - 100 - 30, // barX: centered at GAME_WIDTH/2 - 100
+      0x00aaff,
+      'T-A',
+    );
+    this.updateTowerIndicator(
+      battleScene.towerB,
+      this.towerBGraphics,
+      this.towerBText,
+      GAME_WIDTH / 2 + 100 - 30, // barX: centered at GAME_WIDTH/2 + 100
+      0xff4444,
+      'T-B',
+    );
+
     // Respawn overlay — visible when player is dead
     const player = scene.player;
     if (player && !player.isAlive) {
@@ -250,6 +314,50 @@ export class HUD {
     const m = Math.floor(seconds / 60);
     const s = Math.floor(seconds % 60);
     return `${m}:${s.toString().padStart(2, '0')}`;
+  }
+
+  private updateTowerIndicator(
+    tower: any,
+    g: Phaser.GameObjects.Graphics,
+    label: Phaser.GameObjects.Text,
+    barX: number,
+    teamColor: number,
+    baseName: string,
+  ): void {
+    g.clear();
+    const barWidth = 60;
+    const barHeight = 8;
+    const barY = 54;
+
+    if (tower && tower.isAlive) {
+      const hpRatio = tower.currentHP / tower.maxHP;
+
+      // Background
+      g.fillStyle(0x333333, 0.8);
+      g.fillRoundedRect(barX, barY, barWidth, barHeight, 2);
+
+      // HP fill
+      const fillWidth = barWidth * hpRatio;
+      if (fillWidth > 0) {
+        g.fillStyle(teamColor, 1);
+        g.fillRoundedRect(barX, barY, fillWidth, barHeight, 2);
+      }
+
+      // If disabled, grey overlay + [OFF] label
+      if (tower.isDisabled()) {
+        g.fillStyle(0x666666, 0.5);
+        g.fillRoundedRect(barX, barY, barWidth, barHeight, 2);
+        label.setText(`${baseName} [OFF]`);
+        label.setColor('#666666');
+      } else {
+        label.setText(baseName);
+        label.setColor(teamColor === 0x00aaff ? '#00aaff' : '#ff4444');
+      }
+    } else if (tower && !tower.isAlive) {
+      // Tower destroyed
+      label.setText(`${baseName} [X]`);
+      label.setColor('#444444');
+    }
   }
 
   showKill(killerName: string, victimName: string): void {
