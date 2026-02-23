@@ -1,11 +1,11 @@
 import Phaser from 'phaser';
-import { Team } from '../types';
+import { HeroStats, Team } from '../types';
 import { Hero } from '../entities/Hero';
 import { heroDataMap, heroIds } from './heroData';
 
 export class HeroRegistry {
-  static create(scene: Phaser.Scene, heroId: string, x: number, y: number, team: Team, isPlayer: boolean): Hero {
-    const stats = heroDataMap[heroId];
+  static create(scene: Phaser.Scene, heroId: string, x: number, y: number, team: Team, isPlayer: boolean, statsOverride?: HeroStats): Hero {
+    const stats = statsOverride ?? heroDataMap[heroId];
     if (!stats) {
       throw new Error(`Unknown hero: ${heroId}`);
     }
