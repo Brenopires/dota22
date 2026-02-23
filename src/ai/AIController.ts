@@ -16,10 +16,10 @@ export class AIController {
   private lastAbilityAttempt = 0;
   private static readonly RANGE_HYSTERESIS = 15;
 
-  constructor(hero: Hero, scene: Phaser.Scene) {
+  constructor(hero: Hero, scene: Phaser.Scene, profileOverride?: AIProfile) {
     this.hero = hero;
     this.scene = scene;
-    this.profile = AIPersonality.getProfile(hero.stats.archetype);
+    this.profile = profileOverride ?? AIPersonality.getProfile(hero.stats.archetype);
     this.decisionDelay = this.randomDelay();
   }
 

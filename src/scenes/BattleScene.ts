@@ -9,6 +9,7 @@ import { ArenaGenerator } from '../systems/ArenaGenerator';
 import { MatchOrchestrator } from '../systems/MatchOrchestrator';
 import { TeamBalancer } from '../systems/TeamBalancer';
 import { AIController } from '../ai/AIController';
+import { AIPersonality } from '../ai/AIPersonality';
 import { HUD } from '../ui/HUD';
 import { MMRCalculator } from '../utils/MMRCalculator';
 import { StorageManager } from '../utils/StorageManager';
@@ -143,10 +144,17 @@ export class BattleScene extends Phaser.Scene {
     // Setup collisions
     this.combatSystem.setupCollisions(this.heroes, this.obstacles);
 
-    // Setup AI for non-player heroes
+    // Setup AI for non-player heroes — enemy AI gets MMR-modified profiles
     for (const hero of this.heroes) {
       if (!hero.isPlayer) {
-        const ai = new AIController(hero, this);
+        const baseProfile = AIPersonality.getProfile(hero.stats.archetype);
+        // Only apply MMR modifiers to ENEMY AI (opposing team from player)
+        // Friendly AI (same team as player) stays at baseline difficulty
+        const isEnemy = hero.team !== this.player.team;
+        const finalProfile = isEnemy
+          ? AIPersonality.applyMMRModifiers(baseProfile, playerData.mmr)
+          : baseProfile;
+        const ai = new AIController(hero, this, finalProfile);
         this.aiControllers.push(ai);
       }
     }
