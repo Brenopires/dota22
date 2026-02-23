@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 ## Current Position
 
 Phase: 8 of 8 (Draft & Ranked) — IN PROGRESS
-Plan: 1 of 5 — done
-Status: Plan 08-01 complete — 5-tier rank system, flat MMR, shared RankUtils
-Last activity: 2026-02-23 — Completed 08-01: rank foundation, MMRCalculator, RankUtils
+Plan: 2 of 5 — done
+Status: Plan 08-02 complete — MatchOrchestrator partial/finalize split, TeamManager generateTeamBOnly
+Last activity: 2026-02-23 — Completed 08-02: generatePartialMatch, finalizeMatch, PartialMatchConfig interface
 
-Progress: [█████████████████████] 90%
+Progress: [█████████████████████] 91%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 33
+- Total plans completed: 34
 - Average duration: 2 min
-- Total execution time: 69 min
+- Total execution time: 71 min
 
 **By Phase:**
 
@@ -34,7 +34,7 @@ Progress: [█████████████████████] 90%
 | 05-battle-traits | 5/5 | 9 min | 2 min |
 | 06-neutral-camps | 5/5 | 9 min | 2 min |
 | 07-scoring-sudden-death | 5/5 | 9 min | 2 min |
-| 08-draft-ranked | 1/5 | 2 min | 2 min |
+| 08-draft-ranked | 2/5 | 4 min | 2 min |
 
 **Recent Trend:**
 - Last 5 plans: 2 min, 2 min, 2 min, 2 min, 2 min
@@ -164,6 +164,9 @@ Recent decisions affecting current work:
 - [08-01]: getRank() extracted to RankUtils.ts as named export function (not class) — pure utility, imported by MenuScene and ResultScene
 - [08-01]: MMRCalculator.calculate() keeps 4-param signature with _ prefixes on unused params — zero call-site breakage, flat ±40 replaces ELO
 - [08-01]: DRAFT_PICK_TIMEOUT = 25 placed in Phase 8 section of constants.ts — 25s gives 5s margin under 30s spec requirement
+- [08-02]: PartialMatchConfig exported from MatchOrchestrator (not types.ts) — internal boundary type for orchestrator/draft boundary, not a shared game-wide type
+- [08-02]: teamA passive IDs excluded from trait blacklist in finalizeMatch — trait chosen before hero pick in draft flow, post-hoc conflicts acceptable by design
+- [08-02]: generateTeams() and generateMatch() preserved unchanged — BattleScene fallback path uses generateMatch() unmodified
 
 ### Pending Todos
 
@@ -179,5 +182,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 08-01-PLAN.md — rank foundation, MMRCalculator flat ±40, RankUtils utility
+Stopped at: Completed 08-02-PLAN.md — MatchOrchestrator partial/finalize split, PartialMatchConfig interface
 Resume file: None
