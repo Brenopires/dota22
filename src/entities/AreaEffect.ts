@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { Team, AbilityDef, BuffType } from '../types';
+import { BaseEntity } from './BaseEntity';
 import { Hero } from './Hero';
 import { VFXManager } from '../systems/VFXManager';
 
@@ -80,7 +81,7 @@ export class AreaEffect extends Phaser.GameObjects.Arc {
     }
   }
 
-  updateEffect(dt: number, heroes: Hero[]): void {
+  updateEffect(dt: number, heroes: Hero[], nonHeroTargets?: BaseEntity[]): void {
     this.remaining -= dt;
     this.tickTimer += dt;
 
@@ -112,6 +113,19 @@ export class AreaEffect extends Phaser.GameObjects.Arc {
               });
             }
           }
+        }
+      }
+
+      // Also damage non-hero targets (boss, towers) in the area
+      if (nonHeroTargets) {
+        for (const target of nonHeroTargets) {
+          if (!target.isAlive) continue;
+          const dist = Phaser.Math.Distance.Between(this.x, this.y, target.x, target.y);
+          if (dist > this.radius) continue;
+          // Only damage enemies (not allies) -- boss is NEUTRAL so never equals ownerTeam
+          if (target.team === this.ownerTeam) continue;
+          target.takeDamage(this.damage * this.tickInterval, this.ownerId);
+          // Do NOT apply buffs to boss/tower
         }
       }
     }

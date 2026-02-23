@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { AUTO_ATTACK_COOLDOWN } from '../constants';
 import { AbilityDef, AbilityType, BuffType, Team } from '../types';
 import { Hero } from '../entities/Hero';
+import { BaseEntity } from '../entities/BaseEntity';
 import { Projectile } from '../entities/Projectile';
 import { AreaEffect } from '../entities/AreaEffect';
 import { VFXManager } from './VFXManager';
@@ -82,6 +83,22 @@ export class CombatSystem {
         }
       }
 
+      // Check collision with boss and towers
+      if (proj.active) {
+        const nonHeroTargets: BaseEntity[] = battleScene.getNonHeroTargets?.(proj.ownerTeam) || [];
+        for (const target of nonHeroTargets) {
+          if (!target.isAlive) continue;
+          const dist = Phaser.Math.Distance.Between(proj.x, proj.y, target.x, target.y);
+          if (dist < 25) {
+            target.takeDamage(proj.damage, proj.ownerId);
+            // Do NOT apply buffs to boss/tower (buff system is hero-only)
+            proj.destroyProjectile();
+            this.projectiles.splice(i, 1);
+            break;
+          }
+        }
+      }
+
       // Check collision with obstacles
       if (proj.active) {
         const obstacles: Phaser.Physics.Arcade.StaticGroup = battleScene.obstacles;
@@ -109,7 +126,8 @@ export class CombatSystem {
         this.areaEffects.splice(i, 1);
         continue;
       }
-      area.updateEffect(dt, heroes);
+      const nonHeroTargets: BaseEntity[] = battleScene.getNonHeroTargets?.(area.ownerTeam) || [];
+      area.updateEffect(dt, heroes, nonHeroTargets);
       if (!area.active) {
         this.areaEffects.splice(i, 1);
       }
@@ -122,17 +140,30 @@ export class CombatSystem {
 
     const battleScene = this.scene as any;
     const enemies = battleScene.getEnemies(hero.team) as Hero[];
-    if (!enemies || enemies.length === 0) return;
 
     const range = hero.getAttackRange();
-    let closest: Hero | null = null;
+    let closest: Hero | BaseEntity | null = null;
     let closestDist = Infinity;
 
-    for (const enemy of enemies) {
-      const dist = hero.distanceTo(enemy);
+    // Check hero enemies (existing logic)
+    if (enemies) {
+      for (const enemy of enemies) {
+        const dist = hero.distanceTo(enemy);
+        if (dist <= range && dist < closestDist) {
+          closestDist = dist;
+          closest = enemy;
+        }
+      }
+    }
+
+    // Also check boss and enemy towers as valid targets
+    const nonHeroTargets: BaseEntity[] = battleScene.getNonHeroTargets?.(hero.team) || [];
+    for (const target of nonHeroTargets) {
+      if (!target.isAlive) continue;
+      const dist = Phaser.Math.Distance.Between(hero.x, hero.y, target.x, target.y);
       if (dist <= range && dist < closestDist) {
         closestDist = dist;
-        closest = enemy;
+        closest = target;
       }
     }
 
@@ -146,10 +177,15 @@ export class CombatSystem {
       });
       hero.autoAttackTimer = AUTO_ATTACK_COOLDOWN / 1000;
 
-      if (hero.isRanged()) {
-        this.showRangedAttack(hero, closest);
+      // VFX: check if target is a Hero for existing VFX, else generic
+      if (closest instanceof Hero) {
+        if (hero.isRanged()) {
+          this.showRangedAttack(hero, closest);
+        } else {
+          this.showMeleeSlash(hero, closest);
+        }
       } else {
-        this.showMeleeSlash(hero, closest);
+        this.showGenericAttack(hero, closest);
       }
     }
   }
@@ -228,6 +264,60 @@ export class CombatSystem {
         });
       },
     });
+  }
+
+  /**
+   * Generic attack VFX for non-Hero targets (boss, towers).
+   */
+  private showGenericAttack(attacker: Hero, target: BaseEntity): void {
+    if (attacker.isRanged()) {
+      // Ranged: small projectile dot flying to target
+      const dot = this.scene.add.circle(attacker.x, attacker.y, 4, attacker.stats.color, 0.8);
+      dot.setDepth(5);
+      this.scene.tweens.add({
+        targets: dot,
+        x: target.x,
+        y: target.y,
+        duration: 100,
+        ease: 'Linear',
+        onComplete: () => {
+          dot.destroy();
+          const flash = this.scene.add.circle(target.x, target.y, 10, 0xffffff, 0.5);
+          flash.setDepth(4);
+          this.scene.tweens.add({
+            targets: flash,
+            alpha: 0, scaleX: 1.5, scaleY: 1.5,
+            duration: 150,
+            onComplete: () => flash.destroy(),
+          });
+        },
+      });
+    } else {
+      // Melee: slash arc toward target
+      const angle = Math.atan2(target.y - attacker.y, target.x - attacker.x);
+      const g = this.scene.add.graphics();
+      g.setDepth(6);
+      g.lineStyle(3, attacker.stats.color, 0.8);
+      const cx = attacker.x + Math.cos(angle) * 15;
+      const cy = attacker.y + Math.sin(angle) * 15;
+      g.beginPath();
+      g.arc(cx, cy, 30, angle - 0.8, angle + 0.8, false);
+      g.strokePath();
+      this.scene.tweens.add({
+        targets: g,
+        alpha: 0, scaleX: 1.3, scaleY: 1.3,
+        duration: 200,
+        onComplete: () => g.destroy(),
+      });
+      const flash = this.scene.add.circle(target.x, target.y, 12, 0xffffff, 0.6);
+      flash.setDepth(4);
+      this.scene.tweens.add({
+        targets: flash,
+        alpha: 0, scaleX: 1.5, scaleY: 1.5,
+        duration: 150,
+        onComplete: () => flash.destroy(),
+      });
+    }
   }
 
   executeAbility(caster: Hero, ability: AbilityDef, targetX: number, targetY: number): void {
