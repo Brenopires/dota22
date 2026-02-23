@@ -24,7 +24,7 @@ export class Hero extends BaseEntity {
   private silenceGraphics: Phaser.GameObjects.Graphics | null = null;
   healthBar: HealthBar;
 
-  abilityCooldowns: number[] = [0, 0, 0];
+  abilityCooldowns: number[] = [0, 0, 0, 0];
   autoAttackTimer = 0;
 
   constructor(scene: Phaser.Scene, x: number, y: number, stats: HeroStats, team: Team, isPlayer: boolean) {
