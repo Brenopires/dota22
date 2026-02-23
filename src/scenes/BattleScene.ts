@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { ARENA_WIDTH, ARENA_HEIGHT, MATCH_DURATION, MANA_REGEN_RATE, AI_UPDATE_INTERVAL, HERO_RADIUS, RESPAWN_DURATION, BOSS_KILL_BUFF_DAMAGE, BOSS_KILL_BUFF_DURATION, TOWER_DISABLE_DURATION, BOSS_TIER2_DAMAGE_AMP, BOSS_RESPAWN_DELAY } from '../constants';
+import { ARENA_WIDTH, ARENA_HEIGHT, MATCH_DURATION, MANA_REGEN_RATE, AI_UPDATE_INTERVAL, HERO_RADIUS, RESPAWN_DURATION, BOSS_KILL_BUFF_DAMAGE, BOSS_KILL_BUFF_DURATION, TOWER_DISABLE_DURATION, BOSS_TIER2_DAMAGE_AMP, BOSS_RESPAWN_DELAY, SUDDEN_DEATH_COLOR, SUDDEN_DEATH_FLASH_DURATION, SUDDEN_DEATH_FLASH_INTENSITY } from '../constants';
 import { Team, MatchResult, MatchPhase, MatchConfig, BuffType, TraitDef } from '../types';
 import { Hero } from '../entities/Hero';
 import { HeroRegistry } from '../heroes/HeroRegistry';
@@ -556,7 +556,20 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private onMatchStateChange({ phase }: { phase: MatchPhase }): void {
-    if (phase === MatchPhase.ENDED) {
+    if (phase === MatchPhase.SUDDEN_DEATH) {
+      // Cancel all in-flight respawn timers (Pitfall 1 from research)
+      for (const timer of this.respawnTimers.values()) {
+        this.time.removeEvent(timer);
+      }
+      this.respawnTimers.clear();
+      this.playerRespawnEndTime = 0;
+
+      // Red screen flash
+      this.vfxManager.screenFlash(SUDDEN_DEATH_COLOR, SUDDEN_DEATH_FLASH_DURATION, SUDDEN_DEATH_FLASH_INTENSITY);
+
+      // Show Sudden Death HUD overlay
+      this.hud.showSuddenDeathOverlay();
+    } else if (phase === MatchPhase.ENDED) {
       this.endMatch();
     }
   }
@@ -626,7 +639,9 @@ export class BattleScene extends Phaser.Scene {
 
   private scheduleBossRespawn(): void {
     this.time.delayedCall(BOSS_RESPAWN_DELAY, () => {
-      if (this.boss && this.matchStateMachine.getPhase() !== MatchPhase.ENDED) {
+      if (this.boss &&
+          this.matchStateMachine.getPhase() !== MatchPhase.ENDED &&
+          this.matchStateMachine.getPhase() !== MatchPhase.SUDDEN_DEATH) {
         this.boss.respawnBoss();
         // Apply current minute scaling to respawned boss
         if (this.bossMinute > 0) {
@@ -783,6 +798,16 @@ export class BattleScene extends Phaser.Scene {
     if (killerHero === this.player) this.playerKills++;
 
     this.hud.showKill(killerHero?.stats.name ?? 'Unknown', hero.stats.name);
+
+    // SUDDEN DEATH: no respawns, check for team wipe
+    if (this.matchStateMachine.getPhase() === MatchPhase.SUDDEN_DEATH) {
+      const teamAAllDead = this.teamA.every(h => !h.isAlive);
+      const teamBAllDead = this.teamB.every(h => !h.isAlive);
+      if (teamAAllDead || teamBAllDead) {
+        this.matchStateMachine.transition(MatchPhase.ENDED);
+      }
+      return; // No respawn scheduling in Sudden Death
+    }
 
     // Schedule respawn — NOT instant defeat.
     // Cap at 10 000 ms per FLOW-02 requirement (max 10-second respawn timer).
