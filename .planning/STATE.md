@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 
 ## Current Position
 
-Phase: 3 of 8 (Asymmetric Teams) — COMPLETE
-Plan: 5 of 5 — all done
-Status: Phase 3 complete — asymmetric teams, stat scaling, MMR AI, target distribution, composition banner
-Last activity: 2026-02-22 — Completed Phase 3; all 5 plans executed, verifier passed 7/7
+Phase: 4 of 8 (Boss & Towers) — IN PROGRESS
+Plan: 1 of 6 — complete
+Status: Plan 04-01 complete — BossEntity with phase FSM, Team.NEUTRAL, Phase 4 type/event/constant foundations
+Last activity: 2026-02-23 — Completed 04-01 (BossEntity & type foundations)
 
-Progress: [██████████] 50%
+Progress: [███████████] 53%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
+- Total plans completed: 17
 - Average duration: 2 min
-- Total execution time: 30 min
+- Total execution time: 33 min
 
 **By Phase:**
 
@@ -30,9 +30,10 @@ Progress: [██████████] 50%
 | 01-foundation | 5/5 | 12 min | 2 min |
 | 02-hero-identity | 6/6 | 13 min | 2 min |
 | 03-asymmetric-teams | 5/5 | 5 min | 1 min |
+| 04-boss-towers | 1/6 | 3 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 1 min, 1 min, 1 min, 1 min, 1 min
+- Last 5 plans: 1 min, 1 min, 1 min, 1 min, 3 min
 - Trend: fast
 
 *Updated after each plan completion*
@@ -94,6 +95,10 @@ Recent decisions affecting current work:
 - [03-04]: targetCountMap rebuilt per AI tick from alive targets only — dead heroes excluded via t.isAlive check
 - [03-04]: selectTarget uses jitter ±0.1 to prevent synchronized lock-step across all AIs on same tick
 - [03-05]: showCompositionBanner uses cameras.main.width/height (not GAME_WIDTH constants) — screen-space coordinates for ScrollFactor 0 overlay
+- [04-01]: die() duplicates idempotent guard + physics disable instead of calling super.die() — avoids HERO_KILLED emission that triggers hero scoring/respawn/XP
+- [04-01]: DYING threshold checked before ENRAGED in checkPhaseTransition() — handles massive damage that skips ENRAGED
+- [04-01]: scalePower() heals only HP delta (newMaxHP - oldMaxHP) — prevents boss from full-healing each minute
+- [04-01]: getArmor() returns BOSS_BASE_ARMOR + minutesElapsed — armor grows linearly each minute for increasing difficulty
 
 ### Pending Todos
 
@@ -108,6 +113,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-22
-Stopped at: Completed Phase 3 — all 5 plans executed (TeamManager, TeamBalancer, MMR AI, target distribution, composition banner); verifier passed 7/7; ROADMAP/REQUIREMENTS updated
+Last session: 2026-02-23
+Stopped at: Completed 04-01-PLAN.md — BossEntity class with phase FSM, scaling, BOSS_KILLED death; Phase 4 types/constants/events
 Resume file: None
