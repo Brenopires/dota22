@@ -19,6 +19,8 @@ export class HUD {
   private matchOverText: Phaser.GameObjects.Text | null = null;
   private hpGraphics: Phaser.GameObjects.Graphics;
   private killFeedEntries: KillFeedEntry[] = [];
+  private respawnOverlay: Phaser.GameObjects.Container | null = null;
+  private respawnCountdownText: Phaser.GameObjects.Text | null = null;
 
   constructor(scene: IBattleScene & Phaser.Scene) {
     this.scene = scene;
@@ -26,13 +28,13 @@ export class HUD {
     // Timer background circle
     const timerBg = scene.add.graphics();
     timerBg.fillStyle(0x000000, 0.5);
-    timerBg.fillCircle(GAME_WIDTH / 2, 28, 25);
+    timerBg.fillCircle(GAME_WIDTH / 2, 28, 32);
     timerBg.lineStyle(1, 0x555555, 0.4);
-    timerBg.strokeCircle(GAME_WIDTH / 2, 28, 25);
+    timerBg.strokeCircle(GAME_WIDTH / 2, 28, 32);
     timerBg.setScrollFactor(0).setDepth(199);
 
     // Timer (top center)
-    this.timerText = scene.add.text(GAME_WIDTH / 2, 20, '60', {
+    this.timerText = scene.add.text(GAME_WIDTH / 2, 20, '5:00', {
       fontSize: '28px',
       color: '#ffffff',
       fontFamily: 'monospace',
@@ -86,10 +88,13 @@ export class HUD {
     const scene = this.scene;
 
     // Timer
-    const timer = Math.max(0, scene.matchStateMachine?.getTimeRemaining() ?? 0);
+    const timeRemaining = scene.matchStateMachine?.getTimeRemaining() ?? 0;
+    const timer = Math.max(0, Math.floor(timeRemaining));
     this.timerText.setText(this.formatTime(timer));
     if (timer <= 10) {
       this.timerText.setColor('#ff4444');
+    } else {
+      this.timerText.setColor('#ffffff');
     }
 
     // Kills
@@ -147,6 +152,47 @@ export class HUD {
 
     // Ability bar
     this.abilityBar.update();
+
+    // Respawn overlay — visible when player is dead
+    const player = scene.player;
+    if (player && !player.isAlive) {
+      const secondsLeft = Math.max(0, Math.ceil((scene.playerRespawnEndTime - Date.now()) / 1000));
+
+      if (!this.respawnOverlay) {
+        // Create overlay on first dead frame
+        this.respawnOverlay = scene.add.container(GAME_WIDTH / 2, GAME_HEIGHT / 2);
+        this.respawnOverlay.setScrollFactor(0).setDepth(290);
+
+        const bg = scene.add.graphics();
+        bg.fillStyle(0x000000, 0.6);
+        bg.fillRoundedRect(-120, -50, 240, 100, 12);
+        this.respawnOverlay.add(bg);
+
+        const label = scene.add.text(0, -22, 'RESPAWNING IN', {
+          fontSize: '14px',
+          color: '#aaaaaa',
+          fontFamily: 'monospace',
+          fontStyle: 'bold',
+        }).setOrigin(0.5);
+        this.respawnOverlay.add(label);
+
+        this.respawnCountdownText = scene.add.text(0, 14, `${secondsLeft}`, {
+          fontSize: '36px',
+          color: '#ff4444',
+          fontFamily: 'monospace',
+          fontStyle: 'bold',
+        }).setOrigin(0.5);
+        this.respawnOverlay.add(this.respawnCountdownText);
+      } else if (this.respawnCountdownText) {
+        // Update countdown number each frame
+        this.respawnCountdownText.setText(`${secondsLeft}`);
+      }
+    } else if (this.respawnOverlay) {
+      // Player alive — destroy overlay
+      this.respawnOverlay.destroy();
+      this.respawnOverlay = null;
+      this.respawnCountdownText = null;
+    }
 
     // Match over overlay
     const isEnded = scene.matchStateMachine?.getPhase() === 'ended';
