@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { HERO_RADIUS, HERO_LABEL_SIZE, MELEE_RANGE } from '../constants';
-import { HeroStats, Team, ActiveBuff, BuffType, AbilityDef } from '../types';
+import { HeroStats, Team, ActiveBuff, BuffType, AbilityDef, PassiveDef } from '../types';
 import { HealthBar } from './HealthBar';
 import { BaseEntity } from './BaseEntity';
 import { EventBus, Events } from '../systems/EventBus';
@@ -35,6 +35,9 @@ export class Hero extends BaseEntity {
   private baseMaxHP: number;
   private baseDamage: number;
   private passiveCooldownTimer = 0; // tracks internal cooldown for passive trigger
+  private passiveHandlerRef: ((payload: any) => void) | null = null;
+  private armorStackCount = 0; // tracks Stone Golem passive stacks
+  private readonly MAX_ARMOR_STACKS = 8;
 
   constructor(scene: Phaser.Scene, x: number, y: number, stats: HeroStats, team: Team, isPlayer: boolean) {
     super(scene, x, y, stats.maxHP, team);
@@ -43,6 +46,10 @@ export class Hero extends BaseEntity {
     this.currentMana = stats.maxMana;
     this.baseMaxHP = stats.maxHP;
     this.baseDamage = stats.damage;
+
+    if (stats.passive) {
+      this.subscribePassive(stats.passive);
+    }
 
     // Glow behind hero
     if (scene.textures.exists('glow_circle')) {
@@ -441,6 +448,151 @@ export class Hero extends BaseEntity {
 
   distanceTo(other: Hero): number {
     return Phaser.Math.Distance.Between(this.x, this.y, other.x, other.y);
+  }
+
+  private subscribePassive(passive: PassiveDef): void {
+    const handler = (payload: any) => this.onPassiveTrigger(passive, payload);
+    this.passiveHandlerRef = handler;
+
+    if (passive.trigger === 'on_kill') {
+      EventBus.on(Events.HERO_KILLED, handler, this);
+    } else if (passive.trigger === 'on_hit') {
+      EventBus.on(Events.HERO_HIT, handler, this);
+    } else if (passive.trigger === 'on_damage_taken') {
+      EventBus.on(Events.DAMAGE_TAKEN, handler, this);
+    }
+  }
+
+  private onPassiveTrigger(passive: PassiveDef, payload: any): void {
+    if (!this.isAlive) return;
+
+    // Check internal cooldown
+    if (passive.passiveCooldown && this.passiveCooldownTimer > 0) return;
+
+    // Check if this event applies to THIS hero (ownership check)
+    if (passive.trigger === 'on_kill') {
+      const { killerId } = payload as { victim: any; killerId?: string };
+      if (killerId !== this.getUniqueId()) return;
+    } else if (passive.trigger === 'on_hit') {
+      const { attacker } = payload as { attacker: any; victim: any; damage: number };
+      if (attacker !== this) return;
+    } else if (passive.trigger === 'on_damage_taken') {
+      const { victim } = payload as { victim: any; sourceId?: string; damage: number };
+      if (victim !== this) return;
+    }
+
+    // Apply effect
+    this.applyPassiveEffect(passive, payload);
+
+    // Set internal cooldown
+    if (passive.passiveCooldown) {
+      this.passiveCooldownTimer = passive.passiveCooldown;
+    }
+
+    // REQUIRED: visual feedback on every trigger
+    this.showPassiveVFX();
+  }
+
+  private applyPassiveEffect(passive: PassiveDef, payload: any): void {
+    // on_kill effects
+    if (passive.buffOnKill && passive.trigger === 'on_kill') {
+      const buff: ActiveBuff = { ...passive.buffOnKill };
+      this.addBuff(buff);
+    }
+    if (passive.healOnKill && passive.trigger === 'on_kill') {
+      this.heal(passive.healOnKill);
+    }
+    if (passive.speedBurstOnKill) {
+      // Temporary speed boost: store original speed, restore after duration
+      const origSpeed = this.stats.moveSpeed;
+      this.stats.moveSpeed += passive.speedBurstOnKill;
+      this.scene.time.delayedCall(3000, () => {
+        this.stats.moveSpeed = origSpeed;
+      });
+    }
+    if (passive.cooldownResetOnKill) {
+      for (let i = 0; i < this.abilityCooldowns.length; i++) {
+        this.abilityCooldowns[i] = 0;
+      }
+    }
+    if (passive.manaRestoreOnKill) {
+      this.currentMana = Math.min(this.stats.maxMana, this.currentMana + passive.manaRestoreOnKill);
+    }
+
+    // on_hit effects
+    if (passive.buffOnHit && passive.trigger === 'on_hit') {
+      const { victim } = payload as { victim: any };
+      if (victim && victim.addBuff) {
+        const buff: ActiveBuff = { ...passive.buffOnHit };
+        victim.addBuff(buff);
+      }
+    }
+    if (passive.damageReturnRatio && passive.trigger === 'on_hit') {
+      // Lifesteal: heal attacker for ratio of hit damage
+      const { damage } = payload as { damage: number };
+      this.heal(Math.floor(damage * passive.damageReturnRatio));
+    }
+
+    // on_damage_taken effects
+    if (passive.damageReturnRatio && passive.trigger === 'on_damage_taken') {
+      // Damage return: reflect ratio back to attacker
+      const { sourceId, damage } = payload as { sourceId?: string; damage: number };
+      const reflected = Math.floor(damage * passive.damageReturnRatio);
+      if (sourceId && reflected > 0) {
+        const battleScene = this.scene as any;
+        const attacker = battleScene.heroes?.find((h: any) => h.getUniqueId() === sourceId);
+        if (attacker && attacker.isAlive) {
+          attacker.takeDamage(reflected, this.getUniqueId());
+        }
+      }
+    }
+    if (passive.healOnKill && passive.trigger === 'on_damage_taken') {
+      // Reuse healOnKill field as heal amount for damage-taken trigger (holy_priest)
+      this.heal(passive.healOnKill);
+    }
+    if (passive.buffOnKill && passive.trigger === 'on_damage_taken') {
+      // Reuse buffOnKill for self-buff on damage taken (war_drummer)
+      const buff: ActiveBuff = { ...passive.buffOnKill };
+      this.addBuff(buff);
+    }
+    if (passive.armorStackOnDamage && this.armorStackCount < this.MAX_ARMOR_STACKS) {
+      this.stats.armor += passive.armorStackOnDamage;
+      this.armorStackCount++;
+    }
+  }
+
+  private showPassiveVFX(): void {
+    const battleScene = this.scene as any;
+    if (battleScene.vfxManager) {
+      battleScene.vfxManager.spawnBurst(this.x, this.y, 'generic', 10, 0xFFD700);
+    }
+    // Brief hero tint flash to gold
+    if (this.heroVisual) {
+      this.scene.tweens.add({
+        targets: this.heroVisual,
+        alpha: 0.5,
+        duration: 80,
+        yoyo: true,
+        onComplete: () => {
+          if (this.heroVisual) this.heroVisual.setAlpha(1);
+        },
+      });
+    }
+  }
+
+  override destroy(fromScene?: boolean): void {
+    if (this.passiveHandlerRef && this.stats.passive) {
+      const trigger = this.stats.passive.trigger;
+      if (trigger === 'on_kill') {
+        EventBus.off(Events.HERO_KILLED, this.passiveHandlerRef, this);
+      } else if (trigger === 'on_hit') {
+        EventBus.off(Events.HERO_HIT, this.passiveHandlerRef, this);
+      } else if (trigger === 'on_damage_taken') {
+        EventBus.off(Events.DAMAGE_TAKEN, this.passiveHandlerRef, this);
+      }
+      this.passiveHandlerRef = null;
+    }
+    super.destroy(fromScene);
   }
 
   gainXP(amount: number): void {
