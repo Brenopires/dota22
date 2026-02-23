@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 ## Current Position
 
 Phase: 2 of 8 (Hero Identity) — In Progress
-Plan: 2 of 5 — 02-02 done
-Status: Active — 02-02 complete, ready for 02-03/02-04 (wave 2 parallel plans)
-Last activity: 2026-02-23 — Completed 02-02 (R-slot ultimates); 13 ultimates defined, abilityCooldowns expanded to 4 slots, R key wired, AI ultimate logic added
+Plan: 3 of 5 — 02-03 done
+Status: Active — 02-03 complete, ready for 02-04 (passive implementations)
+Last activity: 2026-02-23 — Completed 02-03 (XP/leveling system); XPSystem class, Hero.gainXP()/levelUp(), base-stat scaling, level-up VFX, BattleScene wired
 
-Progress: [███░░░░░░░] 20%
+Progress: [████░░░░░░] 28%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
+- Total plans completed: 8
 - Average duration: 2 min
-- Total execution time: 15 min
+- Total execution time: 17 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 5/5 | 12 min | 2 min |
-| 02-hero-identity | 2/5 | 3 min | 1.5 min |
+| 02-hero-identity | 3/5 | 5 min | 1.7 min |
 
 **Recent Trend:**
-- Last 5 plans: 3 min, 2 min, 1 min, 1 min, 2 min
+- Last 5 plans: 2 min, 1 min, 1 min, 2 min, 2 min
 - Trend: fast
 
 *Updated after each plan completion*
@@ -68,6 +68,9 @@ Recent decisions affecting current work:
 - [02-01]: HERO_HIT emitted unconditionally after auto-attack connects; DAMAGE_TAKEN gated on finalDamage > 0 — zero-damage hits must not trigger passives
 - [02-02]: abilityOrder in executeUseAbility updated to [3, 2, 0, 1] — R ultimate is highest AI priority when available
 - [02-02]: shouldUseUltimate() checked before abilityPriority random gate — ensures ultimates fire at 30% independent of personality profile
+- [02-03]: XP_THRESHOLDS stores cumulative XP (not delta per level) — levelUp loop uses currentXP >= THRESHOLDS[level], handles multi-level jumps from objective XP cleanly
+- [02-03]: baseMaxHP/baseDamage snapshotted at Hero construction — levelUp() scales from these values to prevent exponential runaway on multiple level-ups
+- [02-03]: passiveCooldownTimer added alongside XP fields — Plan 02-04 can use it immediately without a second Hero.ts edit
 
 ### Pending Todos
 
@@ -83,5 +86,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 02-02-PLAN.md — R-slot ultimates, abilityCooldowns expanded, R key wired, AI ultimate logic
+Stopped at: Completed 02-03-PLAN.md — XP/leveling system, XPSystem class, Hero.gainXP()/levelUp(), level-up VFX, BattleScene wired
 Resume file: None
