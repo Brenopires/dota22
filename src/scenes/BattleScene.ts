@@ -24,6 +24,7 @@ import { XPSystem } from '../systems/XPSystem';
 import { TraitSystem } from '../traits/TraitSystem';
 import { getTraitById } from '../traits/traitData';
 import { getGemById } from '../gems/gemData';
+import { NeutralCampSystem } from '../systems/NeutralCampSystem';
 
 export class BattleScene extends Phaser.Scene {
   player!: Hero;
@@ -74,6 +75,7 @@ export class BattleScene extends Phaser.Scene {
   private towerVictoryTeam: Team | null = null;
   traitSystem: TraitSystem | null = null;
   private activeTraitDef: TraitDef | null = null;
+  neutralCampSystem: NeutralCampSystem | null = null;
 
   constructor() {
     super({ key: 'BattleScene' });
@@ -102,6 +104,7 @@ export class BattleScene extends Phaser.Scene {
     this.towerVictoryTeam = null;
     this.traitSystem = null;
     this.activeTraitDef = null;
+    this.neutralCampSystem = null;
 
     // Use provided match config or generate new one
     this.matchConfig = data?.matchConfig ?? MatchOrchestrator.generateMatch();
@@ -239,13 +242,22 @@ export class BattleScene extends Phaser.Scene {
     this.bossScaleTimer = this.time.addEvent({
       delay: 60000,
       callback: () => {
+        // bossMinute++ is outside boss alive check — match time tracks elapsed minutes
+        // even if boss is dead, so camp mobs scale alongside the match clock
+        this.bossMinute++;
         if (this.boss?.isAlive) {
-          this.bossMinute++;
           this.boss.scalePower(this.bossMinute);
+        }
+        // Scale camp mobs alongside boss
+        if (this.neutralCampSystem) {
+          this.neutralCampSystem.scaleCamps(this.bossMinute);
         }
       },
       loop: true,
     });
+
+    // --- Neutral Camps ---
+    this.neutralCampSystem = new NeutralCampSystem(this, this.heroes, this.hud);
 
     // Physics colliders for boss + towers
     this.physics.add.collider(this.boss, this.obstacles);
@@ -257,6 +269,25 @@ export class BattleScene extends Phaser.Scene {
       this.physics.add.collider(hero, this.boss);
       this.physics.add.collider(hero, this.towerA);
       this.physics.add.collider(hero, this.towerB);
+    }
+
+    // Camp mob colliders
+    if (this.neutralCampSystem) {
+      for (const mob of this.neutralCampSystem.getAliveMobs()) {
+        this.physics.add.collider(mob, this.obstacles);
+        if (this.boss) this.physics.add.collider(mob, this.boss);
+        if (this.towerA) this.physics.add.collider(mob, this.towerA);
+        if (this.towerB) this.physics.add.collider(mob, this.towerB);
+        for (const hero of this.heroes) {
+          this.physics.add.collider(hero, mob);
+        }
+        // Collide camp mobs with each other
+        for (const otherMob of this.neutralCampSystem.getAliveMobs()) {
+          if (mob !== otherMob) {
+            this.physics.add.collider(mob, otherMob);
+          }
+        }
+      }
     }
 
     // Setup AI for non-player heroes — enemy AI gets MMR-modified profiles
@@ -434,6 +465,11 @@ export class BattleScene extends Phaser.Scene {
     if (this.towerB?.isAlive) {
       const towerBEnemies = this.heroes.filter(h => h.isAlive && h.team === Team.A);
       this.towerB.updateTower(dt, towerBEnemies);
+    }
+
+    // Neutral camp updates
+    if (this.neutralCampSystem) {
+      this.neutralCampSystem.update(dt, this.heroes);
     }
 
     // AI update
@@ -848,6 +884,10 @@ export class BattleScene extends Phaser.Scene {
     this.traitSystem?.destroy();
     this.traitSystem = null;
     this.activeTraitDef = null;
+    if (this.neutralCampSystem) {
+      this.neutralCampSystem.destroy();
+      this.neutralCampSystem = null;
+    }
     for (const timer of this.respawnTimers.values()) {
       this.time.removeEvent(timer);
     }
@@ -882,6 +922,12 @@ export class BattleScene extends Phaser.Scene {
       targets.push(this.towerB);
     } else if (attackerTeam === Team.B && this.towerA?.isAlive) {
       targets.push(this.towerA);
+    }
+    // Neutral camp mobs are valid targets for all teams (same as boss)
+    if (this.neutralCampSystem) {
+      for (const mob of this.neutralCampSystem.getAliveMobs()) {
+        targets.push(mob);
+      }
     }
     return targets;
   }
