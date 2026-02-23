@@ -14,7 +14,7 @@ Rift Clash evolves from a working arena brawler into a competitive asymmetric he
 - [x] **Phase 2: Hero Identity** - Hero roster (6-10), ultimates, passives, XP leveling, combat event hooks
 - [x] **Phase 3: Asymmetric Teams** - Random team sizes, MMR-adaptive scaling, AI target distribution
 - [x] **Phase 4: Boss & Towers** - BossEntity (Tier 1), multi-phase boss AI, tower entities with destruction win
-- [ ] **Phase 5: Battle Traits & Gems** - TraitRegistry, per-match trait assignment, random Gem power-ups
+- [x] **Phase 5: Battle Traits & Gems** - TraitRegistry, per-match trait assignment, random Gem power-ups
 - [ ] **Phase 6: Neutral Camps & Arena** - 4 camp types, 60s respawn, buff grants, arena zone layout
 - [ ] **Phase 7: Scoring & Sudden Death** - Full scoring system, Boss Tier 2/3, Sudden Death at 5:00 and via boss Tier 3
 - [ ] **Phase 8: Draft & Ranked** - Pick-from-3 draft UI, rank tier ladder, ±40 MMR shifts
@@ -144,11 +144,11 @@ Plans:
 **Plans:** 5 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — TraitDef/GemDef types + traitData (8 traits) + gemData (8 gems) registries
-- [ ] 05-02-PLAN.md — TraitSystem runtime + MatchOrchestrator trait/gem selection + BattleScene integration
-- [ ] 05-03-PLAN.md — DraftScene trait banner + per-hero gem display
-- [ ] 05-04-PLAN.md — HUD trait indicator + gem indicator in stat panel
-- [ ] 05-05-PLAN.md — Verification + STATE/ROADMAP completion update
+- [x] 05-01-PLAN.md — TraitDef/GemDef types + traitData (8 traits) + gemData (8 gems) registries
+- [x] 05-02-PLAN.md — TraitSystem runtime + MatchOrchestrator trait/gem selection + BattleScene integration
+- [x] 05-03-PLAN.md — DraftScene trait banner + per-hero gem display
+- [x] 05-04-PLAN.md — HUD trait indicator + gem indicator in stat panel
+- [x] 05-05-PLAN.md — Verification + STATE/ROADMAP completion update
 
 ---
 
@@ -238,7 +238,7 @@ Plans:
 | 2. Hero Identity | 6/6 | Complete | 2026-02-23 |
 | 3. Asymmetric Teams | 5/5 | Complete | 2026-02-22 |
 | 4. Boss & Towers | 6/6 | Complete | 2026-02-23 |
-| 5. Battle Traits & Gems | 0/5 | Not started | - |
+| 5. Battle Traits & Gems | 5/5 | Complete | 2026-02-23 |
 | 6. Neutral Camps & Arena | 0/5 | Not started | - |
 | 7. Scoring & Sudden Death | 0/6 | Not started | - |
 | 8. Draft & Ranked | 0/4 | Not started | - |

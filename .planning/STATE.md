@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-22)
 
 **Core value:** Asymmetric chaos that feels like a skill test — being thrown into a 1v3 as the solo player at high MMR and winning through outplay, not handicaps.
-**Current focus:** Phase 5 — Battle Traits & Gems
+**Current focus:** Phase 6 — Neutral Camps & Arena
 
 ## Current Position
 
-Phase: 5 of 8 (Battle Traits & Gems) — IN PROGRESS
-Plan: 4 of 5 — complete
-Status: Plan 05-04 complete — Trait and gem indicators added to HUD
-Last activity: 2026-02-23 — Completed 05-04 (HUD trait & gem indicators)
+Phase: 5 of 8 (Battle Traits & Gems) — COMPLETE
+Plan: 5 of 5 — all done
+Status: Phase 5 complete — TraitRegistry, TraitSystem, GemRegistry, DraftScene display, HUD indicators
+Last activity: 2026-02-23 — Completed Phase 5; verifier passed 9/9
 
-Progress: [██████████████████] 77%
+Progress: [█████████████████] 70%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 24
+- Total plans completed: 26
 - Average duration: 2 min
-- Total execution time: 53 min
+- Total execution time: 55 min
 
 **By Phase:**
 
@@ -31,10 +31,10 @@ Progress: [██████████████████] 77%
 | 02-hero-identity | 6/6 | 13 min | 2 min |
 | 03-asymmetric-teams | 5/5 | 5 min | 1 min |
 | 04-boss-towers | 5/6 | 16 min | 3 min |
-| 05-battle-traits | 4/5 | 7 min | 2 min |
+| 05-battle-traits | 5/5 | 9 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 2 min, 2 min, 2 min, 3 min, 2 min
+- Last 5 plans: 2 min, 3 min, 2 min, 2 min, 2 min
 - Trend: fast
 
 *Updated after each plan completion*
@@ -139,5 +139,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 05-04-PLAN.md (HUD trait & gem indicators)
+Stopped at: Completed Phase 5 — all 5 plans executed, verifier passed 9/9
 Resume file: None

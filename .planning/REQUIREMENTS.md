@@ -115,8 +115,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HERO-02 | Phase 2 | Done |
 | HERO-03 | Phase 2 | Done |
 | HERO-04 | Phase 2 | Done |
-| HERO-05 | Phase 5 | Pending |
-| HERO-06 | Phase 5 | Pending |
+| HERO-05 | Phase 5 | Done |
+| HERO-06 | Phase 5 | Done |
 | ASYM-01 | Phase 3 | Done |
 | ASYM-02 | Phase 3 | Done |
 | ASYM-03 | Phase 3 | Done |
