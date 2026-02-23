@@ -28,6 +28,8 @@ export const Events = {
   HERO_HIT:           'hero:hit',          // emitted by CombatSystem.tryAutoAttack after hit connects
   DAMAGE_TAKEN:       'hero:damage_taken', // emitted by Hero.takeDamage on non-zero final damage
   HERO_LEVELED_UP:    'hero:leveled_up',   // emitted by Hero.levelUp() when level increases
+  // Phase 3 additions:
+  MATCH_COMPOSITION_SET: 'match:composition_set', // emitted after team composition is determined
 } as const;
 
 /** Derived union type of all valid event keys. */

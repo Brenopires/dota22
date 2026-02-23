@@ -196,6 +196,10 @@ export class BattleScene extends Phaser.Scene {
 
     // Subscribe to hero kills for respawn scheduling and kill feed
     EventBus.on(Events.HERO_KILLED, this.onHeroKilled, this);
+
+    // Emit composition event and show the banner
+    EventBus.emit(Events.MATCH_COMPOSITION_SET, { teamSizeA, teamSizeB, scalingMultiplier });
+    this.showCompositionBanner(teamSizeA, teamSizeB);
   }
 
   private createVignette(): void {
@@ -231,6 +235,45 @@ export class BattleScene extends Phaser.Scene {
       g.fillStyle(0x000000, alpha);
       g.fillRect(w - i, 0, 1, h);
     }
+  }
+
+  private showCompositionBanner(sizeA: number, sizeB: number): void {
+    const { width: W, height: H } = this.cameras.main;
+    const container = this.add.container(W / 2, H / 2 - 60);
+    container.setScrollFactor(0).setDepth(300);
+
+    // Semi-transparent background
+    const bg = this.add.graphics();
+    bg.fillStyle(0x000000, 0.72);
+    bg.fillRoundedRect(-130, -44, 260, 88, 14);
+    container.add(bg);
+
+    // Header label
+    const label = this.add.text(0, -26, 'TEAM COMPOSITION', {
+      fontSize: '11px',
+      color: '#aaaaaa',
+      fontFamily: 'monospace',
+    }).setOrigin(0.5);
+    container.add(label);
+
+    // Main composition text e.g. "2 vs 4"
+    const comp = this.add.text(0, 6, `${sizeA} vs ${sizeB}`, {
+      fontSize: '36px',
+      color: '#ffffff',
+      fontFamily: 'monospace',
+      fontStyle: 'bold',
+    }).setOrigin(0.5);
+    container.add(comp);
+
+    // Auto-dismiss after 3 seconds with fade tween
+    this.time.delayedCall(3000, () => {
+      this.tweens.add({
+        targets: container,
+        alpha: 0,
+        duration: 600,
+        onComplete: () => container.destroy(),
+      });
+    });
   }
 
   update(time: number, delta: number): void {
