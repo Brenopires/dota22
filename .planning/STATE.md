@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 
 ## Current Position
 
-Phase: 4 of 8 (Boss & Towers) — COMPLETE
-Plan: 6 of 6 — all done
-Status: Phase 4 complete — BossEntity, TowerEntity, BossAISystem, rewards, win condition, UI
-Last activity: 2026-02-23 — Completed Phase 4; verifier passed 5/5
+Phase: 5 of 8 (Battle Traits & Gems) — IN PROGRESS
+Plan: 1 of ? — complete
+Status: Plan 05-01 complete — TraitDef/GemDef types, 8 traits, 8 gems data registries
+Last activity: 2026-02-23 — Completed 05-01 (trait & gem data registries)
 
-Progress: [██████████████] 65%
+Progress: [███████████████] 68%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 21
+- Total plans completed: 22
 - Average duration: 2 min
-- Total execution time: 46 min
+- Total execution time: 48 min
 
 **By Phase:**
 
@@ -31,9 +31,10 @@ Progress: [██████████████] 65%
 | 02-hero-identity | 6/6 | 13 min | 2 min |
 | 03-asymmetric-teams | 5/5 | 5 min | 1 min |
 | 04-boss-towers | 5/6 | 16 min | 3 min |
+| 05-battle-traits | 1/? | 2 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 3 min, 2 min, 9 min, 2 min, 2 min
+- Last 5 plans: 2 min, 9 min, 2 min, 2 min, 2 min
 - Trend: fast
 
 *Updated after each plan completion*
@@ -113,6 +114,9 @@ Recent decisions affecting current work:
 - [04-04]: entityType guard added to BattleScene.onHeroKilled as safety filter for non-hero entities
 - [04-05]: BossPhase import removed from HUD.ts — boss.phase flows through as any from BossEntity, no direct type reference needed
 - [04-05]: Tower indicator positions at GAME_WIDTH/2 +/- 100 flanking kill score text at center
+- [05-01]: No CDR gems — cooldown reduction interacts multiplicatively with cooldown-related passives
+- [05-01]: traitId and gemAssignments as required MatchConfig fields — compiler guides Plan 05-02 to add trait/gem selection
+- [05-01]: Incompatibility blacklists on vampiric_pact (bd_passive), executioner (ld_passive), spell_burn (fw_passive, vs_passive)
 
 ### Pending Todos
 
@@ -128,5 +132,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed Phase 4 — all 6 plans executed, verifier passed 5/5
+Stopped at: Completed 05-01-PLAN.md (trait & gem data registries)
 Resume file: None
