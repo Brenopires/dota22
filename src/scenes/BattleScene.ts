@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { ARENA_WIDTH, ARENA_HEIGHT, MATCH_DURATION, MANA_REGEN_RATE, AI_UPDATE_INTERVAL } from '../constants';
+import { ARENA_WIDTH, ARENA_HEIGHT, MATCH_DURATION, MANA_REGEN_RATE, AI_UPDATE_INTERVAL, HERO_RADIUS, RESPAWN_DURATION } from '../constants';
 import { Team, MatchResult, MatchPhase } from '../types';
 import { Hero } from '../entities/Hero';
 import { HeroRegistry } from '../heroes/HeroRegistry';
@@ -29,6 +29,7 @@ export class BattleScene extends Phaser.Scene {
   teamBKills = 0;
   playerKills = 0;
   playerDeaths = 0;
+  playerRespawnEndTime = 0; // ms timestamp — 0 means player is alive; non-zero means player is respawning
   private endingMatch = false;
   private respawnTimers: Map<string, Phaser.Time.TimerEvent> = new Map();
   keys!: {
@@ -161,8 +162,8 @@ export class BattleScene extends Phaser.Scene {
     // Subscribe to match state changes
     EventBus.on(Events.MATCH_STATE_CHANGE, this.onMatchStateChange, this);
 
-    // Subscribe to hero kills for kill tracking and kill feed
-    EventBus.on(Events.HERO_KILLED, this.onHeroKill, this);
+    // Subscribe to hero kills for respawn scheduling and kill feed
+    EventBus.on(Events.HERO_KILLED, this.onHeroKilled, this);
   }
 
   private createVignette(): void {
@@ -292,28 +293,86 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
-  private onHeroKill({ victim, killerId }: { victim: BaseEntity; killerId?: string }): void {
-    // Update kill counters
-    if (victim.team === Team.A) {
-      this.teamBKills++;
-    } else {
-      this.teamAKills++;
+  private onHeroKilled({ victim, killerId }: { victim: BaseEntity; killerId?: string }): void {
+    const hero = victim as Hero;
+
+    // Kill counting
+    if (hero.team === Team.A) this.teamBKills++;
+    else this.teamAKills++;
+
+    if (hero === this.player) this.playerDeaths++;
+
+    // Find killer for kill feed
+    const killerHero = this.findHeroById(killerId);
+    if (killerHero === this.player) this.playerKills++;
+
+    this.hud.showKill(killerHero?.stats.name ?? 'Unknown', hero.stats.name);
+
+    // Schedule respawn — NOT instant defeat.
+    // Cap at 10 000 ms per FLOW-02 requirement (max 10-second respawn timer).
+    const respawnDelay = Math.min(RESPAWN_DURATION, 10000);
+
+    // Track player respawn end time for HUD countdown overlay
+    if (hero === this.player) {
+      this.playerRespawnEndTime = Date.now() + respawnDelay;
     }
 
-    if (victim === this.player) {
-      this.playerDeaths++;
+    const respawnTimer = this.time.delayedCall(respawnDelay, () => {
+      this.respawnHero(hero);
+    });
+    this.respawnTimers.set(hero.getUniqueId(), respawnTimer);
+  }
+
+  private findHeroById(id?: string): Hero | undefined {
+    if (!id) return undefined;
+    return this.heroes.find(h => h.getUniqueId() === id);
+  }
+
+  private respawnHero(hero: Hero): void {
+    const spawnPoints = hero.team === Team.A ? this.spawnA : this.spawnB;
+    const spawn = spawnPoints[Math.floor(Math.random() * spawnPoints.length)] || { x: 200, y: 200 };
+
+    // Reset state
+    hero.currentHP = hero.maxHP;
+    hero.currentMana = hero.stats.maxMana;
+    hero.buffs = [];
+    hero.shield = 0;
+    hero.isAlive = true;
+
+    // Reposition
+    hero.setPosition(spawn.x, spawn.y);
+    hero.setScale(1);
+    hero.setAlpha(0);
+    hero.setVisible(true);
+    hero.setAngle(0);
+
+    // Re-enable physics body — must match constructor setup exactly to restore collisions.
+    // IMPORTANT: setCircle must be called (not just setEnable) — die() calls setCircle(0) which
+    // zeroes the radius; without restoring it, projectiles pass through the respawned hero.
+    const body = hero.body as Phaser.Physics.Arcade.Body;
+    body.setEnable(true);
+    body.setCircle(HERO_RADIUS, -HERO_RADIUS, -HERO_RADIUS);
+    body.setCollideWorldBounds(true);
+    body.setBounce(0);
+    body.setDrag(800);
+    body.setMaxVelocity(hero.stats.moveSpeed);
+    body.setVelocity(0, 0);
+
+    // Clear player respawn end time once player is back
+    if (hero === this.player) {
+      this.playerRespawnEndTime = 0;
     }
 
-    // Kill credit for player
-    const killerHero = this.heroes.find(h => h.getUniqueId() === killerId);
-    if (killerHero === this.player) {
-      this.playerKills++;
-    }
+    // Fade in
+    this.tweens.add({
+      targets: hero,
+      alpha: 1,
+      duration: 500,
+      ease: 'Power2',
+    });
 
-    // Kill feed
-    const killerName = killerHero?.stats.name ?? 'Unknown';
-    const victimHero = victim as Hero;
-    this.hud.showKill(killerName, victimHero.stats.name);
+    EventBus.emit(Events.HERO_RESPAWNED, { hero });
+    this.respawnTimers.delete(hero.getUniqueId());
   }
 
   private endMatch(): void {
@@ -371,7 +430,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   shutdown(): void {
-    EventBus.off(Events.HERO_KILLED, this.onHeroKill, this);
+    EventBus.off(Events.HERO_KILLED, this.onHeroKilled, this);
     EventBus.off(Events.MATCH_STATE_CHANGE, this.onMatchStateChange, this);
     if (this.matchStateMachine) {
       this.matchStateMachine.destroy();

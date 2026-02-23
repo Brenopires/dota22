@@ -148,6 +148,7 @@ export interface IBattleScene {
   teamAKills: number;
   teamBKills: number;
   matchStateMachine: MatchStateMachine;
+  playerRespawnEndTime: number; // ms timestamp — 0 means alive; non-zero means respawning
   getEnemies(team: Team): Hero[];
   getAllies(team: Team, excludeSelf?: Hero): Hero[];
 }
