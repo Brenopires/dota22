@@ -10,27 +10,27 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 ## Current Position
 
 Phase: 1 of 8 (Foundation)
-Plan: 3 of 5 in current phase
+Plan: 4 of 5 in current phase
 Status: In progress
-Last activity: 2026-02-22 — Completed 01-02 (BaseEntity abstract class + Hero refactor)
+Last activity: 2026-02-23 — Completed 01-03 (MatchStateMachine, timer leak fix, instant-defeat removal)
 
-Progress: [██░░░░░░░░] 6%
+Progress: [███░░░░░░░] 9%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
+- Total plans completed: 3
 - Average duration: 3 min
-- Total execution time: 6 min
+- Total execution time: 9 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-foundation | 2/5 | 6 min | 3 min |
+| 01-foundation | 3/5 | 9 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 4 min, 2 min
+- Last 5 plans: 4 min, 2 min, 3 min
 - Trend: fast
 
 *Updated after each plan completion*
@@ -53,6 +53,10 @@ Recent decisions affecting current work:
 - [01-02]: Physics body setup stays in Hero constructor — HERO_RADIUS is Hero-specific; future entity types configure their own bodies
 - [01-02]: getArmor() defaults to 0 in BaseEntity — Hero overrides with stats.armor; clean extension point for bosses/towers
 - [01-02]: die() is idempotent via isAlive guard — prevents double HERO_KILLED emission on AoE hits
+- [01-03]: endMatch() uses local endingMatch boolean guard — MatchStateMachine transition() prevents double-ENDED, endingMatch prevents double delayedCall
+- [01-03]: onHeroKill converted to private EventBus handler taking { victim, killerId } — consistent with EventBus decoupling pattern
+- [01-03]: HUD updated in 01-03 (not deferred to 01-05) — removing matchTimer/matchOver from IBattleScene forced update; MM:SS format added as natural consequence
+- [01-03]: MATCH_DURATION = 300, RESPAWN_DURATION = 5000 in constants.ts — single source of truth for Phase 1 timing values
 
 ### Pending Todos
 
@@ -62,10 +66,10 @@ None yet.
 
 - [Phase 4] Boss Tier 2 roaming (obstacle-aware pathfinding) is highest technical risk — NavMesh vs. waypoint graph decision needed during Phase 4 planning
 - [Phase 7] Sudden Death at exact 5:00:000 boundary requires formal state transition specification — flag for plan-phase
-- [General] Scene restart memory leak (tickTimer accumulation) must be addressed in Phase 1 timer cleanup
+- [General] Scene restart memory leak (tickTimer accumulation) — RESOLVED in 01-03 via MatchStateMachine.destroy() + scene.time.removeEvent()
 
 ## Session Continuity
 
-Last session: 2026-02-22
-Stopped at: Completed 01-02-PLAN.md (BaseEntity abstract class, Hero refactored to extend it, onHeroKill coupling removed)
+Last session: 2026-02-23
+Stopped at: Completed 01-03-PLAN.md (MatchStateMachine FSM, timer leak fix, instant-defeat removal, BattleScene integration)
 Resume file: None
