@@ -233,8 +233,8 @@ export class CombatSystem {
   executeAbility(caster: Hero, ability: AbilityDef, targetX: number, targetY: number): void {
     const angle = Math.atan2(targetY - caster.y, targetX - caster.x);
 
-    // Ultimate effects (slot E)
-    if (ability.slot === 'E') {
+    // Ultimate effects (R-slot)
+    if (ability.isUltimate === true) {
       const vfx = (this.scene as any).vfxManager as VFXManager | undefined;
       if (vfx) {
         vfx.zoomPulse(500, 0.04);
