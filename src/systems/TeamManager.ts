@@ -39,4 +39,17 @@ export class TeamManager {
 
     return { teamA, teamB, playerHero };
   }
+
+  static generateTeamBOnly(sizeB: number): { teamB: string[] } {
+    const usedHeroes: string[] = [];
+    const teamB: string[] = [];
+
+    for (let i = 0; i < sizeB; i++) {
+      const heroId = HeroRegistry.getRandomHeroId(usedHeroes);
+      usedHeroes.push(heroId);
+      teamB.push(heroId);
+    }
+
+    return { teamB };
+  }
 }
