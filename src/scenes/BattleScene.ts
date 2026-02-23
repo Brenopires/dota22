@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { ARENA_WIDTH, ARENA_HEIGHT, MATCH_DURATION, MANA_REGEN_RATE, AI_UPDATE_INTERVAL, HERO_RADIUS, RESPAWN_DURATION, BOSS_KILL_BUFF_DAMAGE, BOSS_KILL_BUFF_DURATION, TOWER_DISABLE_DURATION } from '../constants';
-import { Team, MatchResult, MatchPhase, MatchConfig, BuffType } from '../types';
+import { Team, MatchResult, MatchPhase, MatchConfig, BuffType, TraitDef } from '../types';
 import { Hero } from '../entities/Hero';
 import { HeroRegistry } from '../heroes/HeroRegistry';
 import { heroDataMap } from '../heroes/heroData';
@@ -21,6 +21,9 @@ import { BossEntity } from '../entities/BossEntity';
 import { TowerEntity } from '../entities/TowerEntity';
 import { BossAISystem } from '../systems/BossAISystem';
 import { XPSystem } from '../systems/XPSystem';
+import { TraitSystem } from '../traits/TraitSystem';
+import { getTraitById } from '../traits/traitData';
+import { getGemById } from '../gems/gemData';
 
 export class BattleScene extends Phaser.Scene {
   player!: Hero;
@@ -69,6 +72,8 @@ export class BattleScene extends Phaser.Scene {
   private bossMinute = 0;
   private revivalTokenTeam: Team | null = null;
   private towerVictoryTeam: Team | null = null;
+  traitSystem: TraitSystem | null = null;
+  private activeTraitDef: TraitDef | null = null;
 
   constructor() {
     super({ key: 'BattleScene' });
@@ -95,6 +100,8 @@ export class BattleScene extends Phaser.Scene {
     this.bossScaleTimer = null;
     this.revivalTokenTeam = null;
     this.towerVictoryTeam = null;
+    this.traitSystem = null;
+    this.activeTraitDef = null;
 
     // Use provided match config or generate new one
     this.matchConfig = data?.matchConfig ?? MatchOrchestrator.generateMatch();
@@ -131,14 +138,39 @@ export class BattleScene extends Phaser.Scene {
     const largerSize  = Math.max(teamSizeA, teamSizeB);
     const scalingMultiplier = TeamBalancer.computeMultiplier(smallerSize, largerSize, playerData.mmr);
 
+    // Load active trait for stat modification
+    const activeTrait = getTraitById(this.matchConfig.traitId);
+    this.activeTraitDef = activeTrait ?? null;
+
     for (let i = 0; i < teamAIds.length; i++) {
       const heroId = teamAIds[i];
       const spawn = arenaConfig.spawnA[i] ?? arenaConfig.spawnA[0];
       const isPlayer = heroId === playerHero;
       const baseStats = heroDataMap[heroId];
-      const scaledStats = teamSizeA < teamSizeB
+      let scaledStats = teamSizeA < teamSizeB
         ? TeamBalancer.applyToStats(baseStats, scalingMultiplier)
         : { ...baseStats };
+
+      // Apply trait stat modifiers (additive, before hero construction)
+      if (activeTrait) {
+        scaledStats = TraitSystem.applyStatMods(scaledStats, activeTrait);
+      }
+
+      // Apply gem stat modifiers (additive, before hero construction)
+      const gemIdA = this.matchConfig.gemAssignments?.[heroId];
+      const gemA = gemIdA ? getGemById(gemIdA) : undefined;
+      if (gemA) {
+        scaledStats = {
+          ...scaledStats,
+          maxHP: scaledStats.maxHP + (gemA.hpBonus ?? 0),
+          damage: scaledStats.damage + (gemA.damageBonus ?? 0),
+          armor: scaledStats.armor + (gemA.armorBonus ?? 0),
+          moveSpeed: scaledStats.moveSpeed + (gemA.moveSpeedBonus ?? 0),
+          maxMana: scaledStats.maxMana + (gemA.manaBonus ?? 0),
+          attackRange: scaledStats.attackRange + (gemA.attackRangeBonus ?? 0),
+        };
+      }
+
       const hero = HeroRegistry.create(this, heroId, spawn.x, spawn.y, Team.A, isPlayer, scaledStats);
       this.heroes.push(hero);
       this.teamA.push(hero);
@@ -151,9 +183,30 @@ export class BattleScene extends Phaser.Scene {
       const heroId = teamBIds[i];
       const spawn = arenaConfig.spawnB[i] ?? arenaConfig.spawnB[0];
       const baseStats = heroDataMap[heroId];
-      const scaledStats = teamSizeB < teamSizeA
+      let scaledStats = teamSizeB < teamSizeA
         ? TeamBalancer.applyToStats(baseStats, scalingMultiplier)
         : { ...baseStats };
+
+      // Apply trait stat modifiers (additive, before hero construction)
+      if (activeTrait) {
+        scaledStats = TraitSystem.applyStatMods(scaledStats, activeTrait);
+      }
+
+      // Apply gem stat modifiers (additive, before hero construction)
+      const gemIdB = this.matchConfig.gemAssignments?.[heroId];
+      const gemB = gemIdB ? getGemById(gemIdB) : undefined;
+      if (gemB) {
+        scaledStats = {
+          ...scaledStats,
+          maxHP: scaledStats.maxHP + (gemB.hpBonus ?? 0),
+          damage: scaledStats.damage + (gemB.damageBonus ?? 0),
+          armor: scaledStats.armor + (gemB.armorBonus ?? 0),
+          moveSpeed: scaledStats.moveSpeed + (gemB.moveSpeedBonus ?? 0),
+          maxMana: scaledStats.maxMana + (gemB.manaBonus ?? 0),
+          attackRange: scaledStats.attackRange + (gemB.attackRangeBonus ?? 0),
+        };
+      }
+
       const hero = HeroRegistry.create(this, heroId, spawn.x, spawn.y, Team.B, false, scaledStats);
       this.heroes.push(hero);
       this.teamB.push(hero);
@@ -263,6 +316,11 @@ export class BattleScene extends Phaser.Scene {
     // Subscribe to tower destruction for win condition
     EventBus.on(Events.TOWER_DESTROYED, this.onTowerDestroyed, this);
 
+    // TraitSystem -- subscribes AFTER BattleScene's HERO_KILLED handler for revival token ordering
+    if (activeTrait && (activeTrait.onHitEffect || activeTrait.onKillEffect || activeTrait.onDamageTakenEffect)) {
+      this.traitSystem = new TraitSystem(activeTrait, this.heroes, this);
+    }
+
     // Emit composition event and show the banner
     EventBus.emit(Events.MATCH_COMPOSITION_SET, { teamSizeA, teamSizeB, scalingMultiplier });
     this.showCompositionBanner(teamSizeA, teamSizeB);
@@ -358,7 +416,8 @@ export class BattleScene extends Phaser.Scene {
     for (const hero of this.heroes) {
       if (hero.isAlive) {
         hero.updateHero(dt);
-        hero.currentMana = Math.min(hero.stats.maxMana, hero.currentMana + MANA_REGEN_RATE * dt);
+        const traitManaRegen = this.activeTraitDef?.manaRegenMod ?? 0;
+        hero.currentMana = Math.min(hero.stats.maxMana, hero.currentMana + (MANA_REGEN_RATE + traitManaRegen) * dt);
       }
     }
 
@@ -786,6 +845,9 @@ export class BattleScene extends Phaser.Scene {
       this.matchStateMachine.destroy();
     }
     this.xpSystem?.destroy();
+    this.traitSystem?.destroy();
+    this.traitSystem = null;
+    this.activeTraitDef = null;
     for (const timer of this.respawnTimers.values()) {
       this.time.removeEvent(timer);
     }
