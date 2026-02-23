@@ -3,7 +3,8 @@ export const GAME_HEIGHT = 720;
 export const ARENA_WIDTH = 1600;
 export const ARENA_HEIGHT = 1200;
 
-export const MATCH_DURATION = 60; // seconds
+export const MATCH_DURATION = 300; // seconds — 5-minute match cap
+export const RESPAWN_DURATION = 5000; // ms — flat 5s respawn for all heroes in Phase 1
 
 export const HERO_RADIUS = 20;
 export const HERO_LABEL_SIZE = 14;
