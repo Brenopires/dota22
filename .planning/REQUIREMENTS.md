@@ -19,10 +19,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Heroes
 
-- [ ] **HERO-01**: 6-10 playable heroes with distinct playstyles covering different combat roles
-- [ ] **HERO-02**: Each hero has 3 basic abilities (Q/W/E) + 1 ultimate (R) + 1 passive
-- [ ] **HERO-03**: Heroes gain XP from combat kills and objective interactions (no gold system)
-- [ ] **HERO-04**: Heroes level up during match with stat scaling (HP, damage, ability power)
+- [x] **HERO-01**: 6-10 playable heroes with distinct playstyles covering different combat roles
+- [x] **HERO-02**: Each hero has 3 basic abilities (Q/W/E) + 1 ultimate (R) + 1 passive
+- [x] **HERO-03**: Heroes gain XP from combat kills and objective interactions (no gold system)
+- [x] **HERO-04**: Heroes level up during match with stat scaling (HP, damage, ability power)
 - [ ] **HERO-05**: Each match assigns a random Battle Trait modifier to each hero (e.g., double stun duration, lifesteal→shield, spell burn, blink reset on kill)
 - [ ] **HERO-06**: Each hero receives a random Gem power-up at match start providing a stat or ability modifier
 
@@ -111,10 +111,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FLOW-04b | Phase 7 | Pending |
 | FLOW-05 | Phase 7 | Pending |
 | FLOW-06 | Phase 7 | Pending |
-| HERO-01 | Phase 2 | Pending |
-| HERO-02 | Phase 2 | Pending |
-| HERO-03 | Phase 2 | Pending |
-| HERO-04 | Phase 2 | Pending |
+| HERO-01 | Phase 2 | Done |
+| HERO-02 | Phase 2 | Done |
+| HERO-03 | Phase 2 | Done |
+| HERO-04 | Phase 2 | Done |
 | HERO-05 | Phase 5 | Pending |
 | HERO-06 | Phase 5 | Pending |
 | ASYM-01 | Phase 3 | Pending |

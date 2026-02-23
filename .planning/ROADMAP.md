@@ -11,7 +11,7 @@ Rift Clash evolves from a working arena brawler into a competitive asymmetric he
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
 - [x] **Phase 1: Foundation** - EventBus, BaseEntity, MatchStateMachine, respawn, and 5-minute match timer
-- [ ] **Phase 2: Hero Identity** - Hero roster (6-10), ultimates, passives, XP leveling, combat event hooks
+- [x] **Phase 2: Hero Identity** - Hero roster (6-10), ultimates, passives, XP leveling, combat event hooks
 - [ ] **Phase 3: Asymmetric Teams** - Random team sizes, MMR-adaptive scaling, AI target distribution
 - [ ] **Phase 4: Boss & Towers** - BossEntity (Tier 1), multi-phase boss AI, tower entities with destruction win
 - [ ] **Phase 5: Battle Traits & Gems** - TraitRegistry, per-match trait assignment, random Gem power-ups
@@ -66,12 +66,12 @@ Plans:
 **Plans:** 6 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Type foundation: AbilityDef R slot, PassiveDef interface, HERO_HIT/DAMAGE_TAKEN/HERO_LEVELED_UP events + emissions
-- [ ] 02-02-PLAN.md — R-slot ultimates for all 13 heroes + abilityCooldowns[4] + R key input + AI ultimate logic
-- [ ] 02-03-PLAN.md — XPSystem (50 XP/kill, level thresholds, stat scaling) + Hero gainXP()/levelUp() + level-up VFX
-- [ ] 02-04-PLAN.md — Passive definitions for all 13 heroes + Hero passive subscription lifecycle + destroy() cleanup
-- [ ] 02-05-PLAN.md — HUD XP bar + level display + AbilityBar 4-slot layout with gold R slot
-- [ ] 02-06-PLAN.md — Human verification checkpoint (all 5 success criteria confirmed in live gameplay)
+- [x] 02-01-PLAN.md — Type foundation: AbilityDef R slot, PassiveDef interface, HERO_HIT/DAMAGE_TAKEN/HERO_LEVELED_UP events + emissions
+- [x] 02-02-PLAN.md — R-slot ultimates for all 13 heroes + abilityCooldowns[4] + R key input + AI ultimate logic
+- [x] 02-03-PLAN.md — XPSystem (50 XP/kill, level thresholds, stat scaling) + Hero gainXP()/levelUp() + level-up VFX
+- [x] 02-04-PLAN.md — Passive definitions for all 13 heroes + Hero passive subscription lifecycle + destroy() cleanup
+- [x] 02-05-PLAN.md — HUD XP bar + level display + AbilityBar 4-slot layout with gold R slot
+- [x] 02-06-PLAN.md — Human verification checkpoint (all 5 success criteria confirmed in live gameplay)
 
 ---
 
@@ -236,7 +236,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 5/5 | Complete | 2026-02-23 |
-| 2. Hero Identity | 0/6 | In progress | - |
+| 2. Hero Identity | 6/6 | Complete | 2026-02-23 |
 | 3. Asymmetric Teams | 0/5 | Not started | - |
 | 4. Boss & Towers | 0/7 | Not started | - |
 | 5. Battle Traits & Gems | 0/5 | Not started | - |
