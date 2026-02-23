@@ -1,11 +1,13 @@
 import Phaser from 'phaser';
 import { ARENA_WIDTH, ARENA_HEIGHT, MATCH_DURATION, MANA_REGEN_RATE, AI_UPDATE_INTERVAL, HERO_RADIUS, RESPAWN_DURATION } from '../constants';
-import { Team, MatchResult, MatchPhase } from '../types';
+import { Team, MatchResult, MatchPhase, MatchConfig } from '../types';
 import { Hero } from '../entities/Hero';
 import { HeroRegistry } from '../heroes/HeroRegistry';
+import { heroDataMap } from '../heroes/heroData';
 import { CombatSystem } from '../systems/CombatSystem';
 import { ArenaGenerator } from '../systems/ArenaGenerator';
 import { MatchOrchestrator } from '../systems/MatchOrchestrator';
+import { TeamBalancer } from '../systems/TeamBalancer';
 import { AIController } from '../ai/AIController';
 import { HUD } from '../ui/HUD';
 import { MMRCalculator } from '../utils/MMRCalculator';
@@ -53,13 +55,13 @@ export class BattleScene extends Phaser.Scene {
   projectiles!: Phaser.GameObjects.Group;
   areaEffects!: Phaser.GameObjects.Group;
   aiTimer = 0;
-  matchConfig!: ReturnType<typeof MatchOrchestrator.generateMatch>;
+  matchConfig!: MatchConfig;
 
   constructor() {
     super({ key: 'BattleScene' });
   }
 
-  create(data?: { matchConfig?: ReturnType<typeof MatchOrchestrator.generateMatch> }): void {
+  create(data?: { matchConfig?: MatchConfig }): void {
     this.endingMatch = false;
     this.teamAKills = 0;
     this.teamBKills = 0;
@@ -101,12 +103,21 @@ export class BattleScene extends Phaser.Scene {
 
     // Create heroes
     const { teamA: teamAIds, teamB: teamBIds, playerHero } = this.matchConfig;
+    const { teamSizeA, teamSizeB } = this.matchConfig;
+    const playerData = StorageManager.load();
+    const smallerSize = Math.min(teamSizeA, teamSizeB);
+    const largerSize  = Math.max(teamSizeA, teamSizeB);
+    const scalingMultiplier = TeamBalancer.computeMultiplier(smallerSize, largerSize, playerData.mmr);
 
     for (let i = 0; i < teamAIds.length; i++) {
       const heroId = teamAIds[i];
-      const spawn = arenaConfig.spawnA[i] || arenaConfig.spawnA[0];
+      const spawn = arenaConfig.spawnA[i] ?? arenaConfig.spawnA[0];
       const isPlayer = heroId === playerHero;
-      const hero = HeroRegistry.create(this, heroId, spawn.x, spawn.y, Team.A, isPlayer);
+      const baseStats = heroDataMap[heroId];
+      const scaledStats = teamSizeA < teamSizeB
+        ? TeamBalancer.applyToStats(baseStats, scalingMultiplier)
+        : { ...baseStats };
+      const hero = HeroRegistry.create(this, heroId, spawn.x, spawn.y, Team.A, isPlayer, scaledStats);
       this.heroes.push(hero);
       this.teamA.push(hero);
       if (isPlayer) {
@@ -116,8 +127,12 @@ export class BattleScene extends Phaser.Scene {
 
     for (let i = 0; i < teamBIds.length; i++) {
       const heroId = teamBIds[i];
-      const spawn = arenaConfig.spawnB[i] || arenaConfig.spawnB[0];
-      const hero = HeroRegistry.create(this, heroId, spawn.x, spawn.y, Team.B, false);
+      const spawn = arenaConfig.spawnB[i] ?? arenaConfig.spawnB[0];
+      const baseStats = heroDataMap[heroId];
+      const scaledStats = teamSizeB < teamSizeA
+        ? TeamBalancer.applyToStats(baseStats, scalingMultiplier)
+        : { ...baseStats };
+      const hero = HeroRegistry.create(this, heroId, spawn.x, spawn.y, Team.B, false, scaledStats);
       this.heroes.push(hero);
       this.teamB.push(hero);
     }
@@ -421,7 +436,9 @@ export class BattleScene extends Phaser.Scene {
       playerDeaths: this.playerDeaths,
       teamKills: this.player.team === Team.A ? this.teamAKills : this.teamBKills,
       enemyKills: this.player.team === Team.A ? this.teamBKills : this.teamAKills,
-      teamSize: this.matchConfig.teamSize,
+      teamSize: Math.max(this.matchConfig.teamSizeA, this.matchConfig.teamSizeB),  // backward compat
+      teamSizeA: this.matchConfig.teamSizeA,
+      teamSizeB: this.matchConfig.teamSizeB,
       arenaTheme: this.matchConfig.arenaTheme,
       arenaLayout: this.matchConfig.arenaLayout,
       mmrChange,
