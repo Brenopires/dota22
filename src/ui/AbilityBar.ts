@@ -22,7 +22,8 @@ export class AbilityBar {
     this.player = player;
 
     const gap = 8;
-    const totalWidth = 3 * this.slotSize + 2 * gap;
+    const rGap = 16; // extra gap before R slot to signal it is special
+    const totalWidth = 4 * this.slotSize + 3 * gap + rGap; // 3 normal gaps + 1 wider R gap
     const startX = GAME_WIDTH / 2 - totalWidth / 2 + this.slotSize / 2;
     const y = GAME_HEIGHT - 55;
 
@@ -38,10 +39,16 @@ export class AbilityBar {
     );
     panelBg.setScrollFactor(0).setDepth(199);
 
-    const keys = ['I', 'O', 'P'];
+    const keys = ['I', 'O', 'P', 'R'];
 
-    for (let i = 0; i < 3; i++) {
-      const x = startX + i * (this.slotSize + gap);
+    for (let i = 0; i < 4; i++) {
+      let x: number;
+      if (i < 3) {
+        x = startX + i * (this.slotSize + gap);
+      } else {
+        // R slot: add extra rGap before it
+        x = startX + 3 * (this.slotSize + gap) + rGap;
+      }
 
       const graphics = scene.add.graphics();
       graphics.setScrollFactor(0).setDepth(200);
@@ -95,6 +102,11 @@ export class AbilityBar {
       g.fillStyle(0x222222, 1);
       g.fillRoundedRect(left, top, s, s, r);
 
+      // Determine colors: gold for ultimate slot, green for regular
+      const isUltimate = ability.isUltimate === true;
+      const readyBorderColor = isUltimate ? 0xFFD700 : 0x00ff00;
+      const readyGlowColor = isUltimate ? 0xFFD700 : 0x00ff00;
+
       if (cd > 0) {
         // Cooldown overlay
         const ratio = cd / ability.cooldown;
@@ -117,12 +129,12 @@ export class AbilityBar {
 
         slot.cdText.setText('');
       } else {
-        // Ready! Green border + glow
-        g.lineStyle(2, 0x00ff00, 1);
+        // Ready! — gold for ultimate, green for regular
+        g.lineStyle(2, readyBorderColor, 1);
         g.strokeRoundedRect(left, top, s, s, r);
 
-        // Subtle green glow
-        g.fillStyle(0x00ff00, 0.08);
+        // Subtle glow
+        g.fillStyle(readyGlowColor, 0.08);
         g.fillRoundedRect(left, top, s, s, r);
 
         slot.cdText.setText('');
