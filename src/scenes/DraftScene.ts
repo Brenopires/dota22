@@ -3,6 +3,8 @@ import { GAME_WIDTH, GAME_HEIGHT, COLORS } from '../constants';
 import { MatchOrchestrator } from '../systems/MatchOrchestrator';
 import { heroDataMap } from '../heroes/heroData';
 import { HeroArchetype } from '../types';
+import { getTraitById } from '../traits/traitData';
+import { getGemById } from '../gems/gemData';
 
 const ARCHETYPE_COLORS: Record<string, string> = {
   [HeroArchetype.TANK]: '#4488cc',
@@ -51,11 +53,34 @@ export class DraftScene extends Phaser.Scene {
     }).setOrigin(0.5);
     this.animateIn(arenaText, 0);
 
+    // Battle Trait banner
+    const traitDef = getTraitById(this.matchConfig.traitId);
+    if (traitDef) {
+      const traitColorStr = '#' + Phaser.Display.Color.IntegerToColor(traitDef.color).color.toString(16).padStart(6, '0');
+
+      // Trait banner background
+      const traitBg = this.add.graphics();
+      traitBg.fillStyle(traitDef.color, 0.15);
+      traitBg.fillRoundedRect(GAME_WIDTH / 2 - 250, 42, 500, 22, 4);
+      traitBg.lineStyle(1, traitDef.color, 0.3);
+      traitBg.strokeRoundedRect(GAME_WIDTH / 2 - 250, 42, 500, 22, 4);
+      this.animateIn(traitBg, 50);
+
+      // Trait text: "TRAIT: [icon] [name] — [description]"
+      const traitText = this.add.text(GAME_WIDTH / 2, 53, `TRAIT: ${traitDef.icon} ${traitDef.name} \u2014 ${traitDef.description}`, {
+        fontSize: '12px',
+        color: traitColorStr,
+        fontFamily: 'monospace',
+        fontStyle: 'bold',
+      }).setOrigin(0.5);
+      this.animateIn(traitText, 50);
+    }
+
     // Team labels
     const leftX = GAME_WIDTH * 0.27;
     const rightX = GAME_WIDTH * 0.73;
 
-    const yourTeamLabel = this.add.text(leftX, 65, 'YOUR TEAM', {
+    const yourTeamLabel = this.add.text(leftX, 75, 'YOUR TEAM', {
       fontSize: '20px',
       color: '#44cc88',
       fontFamily: 'monospace',
@@ -63,7 +88,7 @@ export class DraftScene extends Phaser.Scene {
     }).setOrigin(0.5);
     this.animateIn(yourTeamLabel, 100);
 
-    const enemyTeamLabel = this.add.text(rightX, 65, 'ENEMY TEAM', {
+    const enemyTeamLabel = this.add.text(rightX, 75, 'ENEMY TEAM', {
       fontSize: '20px',
       color: '#cc4444',
       fontFamily: 'monospace',
@@ -72,7 +97,7 @@ export class DraftScene extends Phaser.Scene {
     this.animateIn(enemyTeamLabel, 100);
 
     // Render hero cards
-    const cardStartY = 100;
+    const cardStartY = 110;
     const { teamA, teamB, playerHero } = this.matchConfig;
     const maxCards = Math.max(teamA.length, teamB.length);
 
@@ -80,17 +105,17 @@ export class DraftScene extends Phaser.Scene {
       const heroId = teamA[i];
       const isPlayer = heroId === playerHero;
       const delay = 200 + i * 150;
-      this.renderHeroCard(leftX, cardStartY + i * 130, heroId, isPlayer, delay);
+      this.renderHeroCard(leftX, cardStartY + i * 146, heroId, isPlayer, delay);
     }
 
     for (let i = 0; i < teamB.length; i++) {
       const heroId = teamB[i];
       const delay = 200 + i * 150;
-      this.renderHeroCard(rightX, cardStartY + i * 130, heroId, false, delay);
+      this.renderHeroCard(rightX, cardStartY + i * 146, heroId, false, delay);
     }
 
     // VS divider
-    const vsText = this.add.text(GAME_WIDTH / 2, cardStartY + (maxCards * 130) / 2 - 65, 'VS', {
+    const vsText = this.add.text(GAME_WIDTH / 2, cardStartY + (maxCards * 146) / 2 - 73, 'VS', {
       fontSize: '32px',
       color: '#333333',
       fontFamily: 'monospace',
@@ -139,10 +164,10 @@ export class DraftScene extends Phaser.Scene {
     // Card background
     const bg = this.add.graphics();
     bg.fillStyle(isPlayer ? 0x1a2a1a : 0x1a1a2a, 0.6);
-    bg.fillRoundedRect(cardLeft - 8, y - 4, cardWidth + 16, 120, 6);
+    bg.fillRoundedRect(cardLeft - 8, y - 4, cardWidth + 16, 136, 6);
     if (isPlayer) {
       bg.lineStyle(1, 0x44cc88, 0.5);
-      bg.strokeRoundedRect(cardLeft - 8, y - 4, cardWidth + 16, 120, 6);
+      bg.strokeRoundedRect(cardLeft - 8, y - 4, cardWidth + 16, 136, 6);
     }
     this.animateIn(bg, delay);
 
@@ -206,13 +231,29 @@ export class DraftScene extends Phaser.Scene {
       });
       this.animateIn(slotText, delay + 50);
 
-      const abilityLine = this.add.text(cardLeft + 26, ay, `${ability.name} — ${ability.description}`, {
+      const abilityLine = this.add.text(cardLeft + 26, ay, `${ability.name} \u2014 ${ability.description}`, {
         fontSize: '12px',
         color: '#888888',
         fontFamily: 'monospace',
         wordWrap: { width: cardWidth - 22 },
       });
       this.animateIn(abilityLine, delay + 50);
+    }
+
+    // Gem info line (below abilities)
+    const gemId = this.matchConfig.gemAssignments?.[heroId];
+    if (gemId) {
+      const gemDef = getGemById(gemId);
+      if (gemDef) {
+        const gemColorStr = '#' + Phaser.Display.Color.IntegerToColor(gemDef.color).color.toString(16).padStart(6, '0');
+        const gemY = abilityStartY + 3 * 18 + 4; // below the 3 ability lines + small gap
+        const gemText = this.add.text(cardLeft + 4, gemY, `GEM: ${gemDef.icon} ${gemDef.name} \u2014 ${gemDef.description}`, {
+          fontSize: '11px',
+          color: gemColorStr,
+          fontFamily: 'monospace',
+        });
+        this.animateIn(gemText, delay + 100);
+      }
     }
   }
 
