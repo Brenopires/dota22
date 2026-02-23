@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 ## Current Position
 
 Phase: 2 of 8 (Hero Identity) — In Progress
-Plan: 3 of 5 — 02-03 done
-Status: Active — 02-03 complete, ready for 02-04 (passive implementations)
-Last activity: 2026-02-23 — Completed 02-03 (XP/leveling system); XPSystem class, Hero.gainXP()/levelUp(), base-stat scaling, level-up VFX, BattleScene wired
+Plan: 4 of 5 — 02-04 done
+Status: Active — 02-04 complete, ready for 02-05 (HUD XP bar)
+Last activity: 2026-02-23 — Completed 02-04 (passive system); 13 hero passives in heroData.ts, Hero.subscribePassive/applyPassiveEffect/showPassiveVFX/destroy lifecycle, EventBus cleanup
 
-Progress: [████░░░░░░] 28%
+Progress: [█████░░░░░] 35%
 
 ## Performance Metrics
 
@@ -28,7 +28,7 @@ Progress: [████░░░░░░] 28%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 5/5 | 12 min | 2 min |
-| 02-hero-identity | 3/5 | 5 min | 1.7 min |
+| 02-hero-identity | 4/5 | 8 min | 2 min |
 
 **Recent Trend:**
 - Last 5 plans: 2 min, 1 min, 1 min, 2 min, 2 min
@@ -71,6 +71,9 @@ Recent decisions affecting current work:
 - [02-03]: XP_THRESHOLDS stores cumulative XP (not delta per level) — levelUp loop uses currentXP >= THRESHOLDS[level], handles multi-level jumps from objective XP cleanly
 - [02-03]: baseMaxHP/baseDamage snapshotted at Hero construction — levelUp() scales from these values to prevent exponential runaway on multiple level-ups
 - [02-03]: passiveCooldownTimer added alongside XP fields — Plan 02-04 can use it immediately without a second Hero.ts edit
+- [02-04]: buffOnKill/healOnKill fields reused across trigger types in applyPassiveEffect() — routing by passive.trigger means same field can mean different things per trigger category
+- [02-04]: destroy() stores passiveHandlerRef (arrow wrapper) and uses it for EventBus.off — exact reference match required for Phaser EventEmitter cleanup
+- [02-04]: passiveCooldown: 0 for phantom_knight is falsy — guard `passive.passiveCooldown && timer > 0` correctly skips the gate, making every hit trigger without cooldown
 
 ### Pending Todos
 
@@ -81,10 +84,10 @@ None yet.
 - [Phase 4] Boss Tier 2 roaming (obstacle-aware pathfinding) is highest technical risk — NavMesh vs. waypoint graph decision needed during Phase 4 planning
 - [Phase 7] Sudden Death at exact 5:00:000 boundary requires formal state transition specification — flag for plan-phase
 - [General] Scene restart memory leak (tickTimer accumulation) — RESOLVED in 01-03 via MatchStateMachine.destroy() + scene.time.removeEvent()
-- [02-ongoing] heroData.ts TypeScript errors on all 13 heroes (missing passive field) are intentional — will be resolved in Plan 02-04
+- [02-ongoing] heroData.ts TypeScript errors on all 13 heroes (missing passive field) — RESOLVED in Plan 02-04
 
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 02-03-PLAN.md — XP/leveling system, XPSystem class, Hero.gainXP()/levelUp(), level-up VFX, BattleScene wired
+Stopped at: Completed 02-04-PLAN.md — passive system, 13 hero passives in heroData.ts, Hero.subscribePassive/applyPassiveEffect/showPassiveVFX/destroy lifecycle, EventBus cleanup
 Resume file: None
