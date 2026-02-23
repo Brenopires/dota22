@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 
 ## Current Position
 
-Phase: 7 of 8 (Scoring & Sudden Death) — COMPLETE
-Plan: 5 of 5 — all done
-Status: Phase 7 complete — all 5 success criteria verified
-Last activity: 2026-02-23 — Completed 07-05: Phase 7 verification + STATE/ROADMAP update
+Phase: 8 of 8 (Draft & Ranked) — IN PROGRESS
+Plan: 1 of 5 — done
+Status: Plan 08-01 complete — 5-tier rank system, flat MMR, shared RankUtils
+Last activity: 2026-02-23 — Completed 08-01: rank foundation, MMRCalculator, RankUtils
 
-Progress: [█████████████████████] 87.5%
+Progress: [█████████████████████] 90%
 
 ## Performance Metrics
 
@@ -34,6 +34,7 @@ Progress: [█████████████████████] 87.5
 | 05-battle-traits | 5/5 | 9 min | 2 min |
 | 06-neutral-camps | 5/5 | 9 min | 2 min |
 | 07-scoring-sudden-death | 5/5 | 9 min | 2 min |
+| 08-draft-ranked | 1/5 | 2 min | 2 min |
 
 **Recent Trend:**
 - Last 5 plans: 2 min, 2 min, 2 min, 2 min, 2 min
@@ -159,6 +160,10 @@ Recent decisions affecting current work:
 - [07-04]: scheduleBossRespawn callback guards !== SUDDEN_DEATH alongside !== ENDED — boss does not respawn after SD entry
 - [07-04]: isSuddenDeath flag set once via showSuddenDeathOverlay() method call — consistent with HUD polling-first pattern, no EventBus subscription needed
 - [07-05]: Phase 7 verified complete via tsc + grep artifact checks — all 5 success criteria confirmed, 5/5 PASS
+- [08-01]: RANK_THRESHOLDS 5-tier — Gold starts at 1000 MMR matching MMR_INITIAL so new players land in Gold by design
+- [08-01]: getRank() extracted to RankUtils.ts as named export function (not class) — pure utility, imported by MenuScene and ResultScene
+- [08-01]: MMRCalculator.calculate() keeps 4-param signature with _ prefixes on unused params — zero call-site breakage, flat ±40 replaces ELO
+- [08-01]: DRAFT_PICK_TIMEOUT = 25 placed in Phase 8 section of constants.ts — 25s gives 5s margin under 30s spec requirement
 
 ### Pending Todos
 
@@ -174,5 +179,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 07-05-PLAN.md — Phase 7 verification and state update — Phase 7 COMPLETE
+Stopped at: Completed 08-01-PLAN.md — rank foundation, MMRCalculator flat ±40, RankUtils utility
 Resume file: None
