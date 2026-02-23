@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 
 ## Current Position
 
-Phase: 5 of 8 (Battle Traits & Gems) — COMPLETE
-Plan: 5 of 5 — all done
-Status: Phase 5 complete — TraitRegistry, TraitSystem, GemRegistry, DraftScene display, HUD indicators
-Last activity: 2026-02-23 — Completed Phase 5; verifier passed 9/9
+Phase: 6 of 8 (Neutral Camps & Arena) — IN PROGRESS
+Plan: 1 of 5 — plan 01 done
+Status: Phase 6 plan 01 complete — CampType enum, BuffType extensions, camp constants, EventBus events
+Last activity: 2026-02-23 — Completed 06-01: type foundation for neutral camps
 
-Progress: [█████████████████] 70%
+Progress: [██████████████████] 73%
 
 ## Performance Metrics
 
@@ -32,6 +32,7 @@ Progress: [█████████████████] 70%
 | 03-asymmetric-teams | 5/5 | 5 min | 1 min |
 | 04-boss-towers | 5/6 | 16 min | 3 min |
 | 05-battle-traits | 5/5 | 9 min | 2 min |
+| 06-neutral-camps | 1/5 | 1 min | 1 min |
 
 **Recent Trend:**
 - Last 5 plans: 2 min, 3 min, 2 min, 2 min, 2 min
@@ -124,6 +125,8 @@ Recent decisions affecting current work:
 - [05-02]: sudden_valor tracks elapsed minutes via 300 - timeRemaining for first-kill-per-minute rule
 - [05-04]: Trait indicator at y=68-84 between kill score and boss health bar -- minor visual overlap with boss name text acceptable since boss health bar is conditional
 - [05-04]: Panel background expanded from 78px to 90px to fit gem indicator line at GAME_HEIGHT-25
+- [06-01]: CampType.COOLDOWN uses value 'cooldown' (not 'cdr') — enum keys describe camp type, not buff abbreviation; consistent with DAMAGE/SHIELD/HASTE pattern
+- [06-01]: BuffType.COOLDOWN_REDUCTION uses value 'cdr' — consistent with existing BuffType short-value convention
 
 ### Pending Todos
 
@@ -139,5 +142,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed Phase 5 — all 5 plans executed, verifier passed 9/9
+Stopped at: Completed 06-01-PLAN.md — type foundation for Phase 6 neutral camps
 Resume file: None
