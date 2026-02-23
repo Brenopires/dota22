@@ -8,6 +8,8 @@ import {
   BOSS_LEASH_RADIUS,
   BOSS_ATTACK_RANGE,
   BOSS_MOVE_SPEED,
+  BOSS_ROAM_WAYPOINTS,
+  BOSS_ROAM_SPEED,
 } from '../constants';
 
 /**
@@ -30,11 +32,34 @@ export class BossAISystem {
   private homePosition: { x: number; y: number };
   private aggroTarget: BaseEntity | null = null;
   private stickyTargetTimer = 0;
+  private isRoaming = false;
+  private roamWaypointIndex = 0;
+  private readonly WAYPOINT_REACH_DIST = 60;
 
   constructor(boss: BossEntity, scene: Phaser.Scene, homeX: number, homeY: number) {
     this.boss = boss;
     this.scene = scene;
     this.homePosition = { x: homeX, y: homeY };
+  }
+
+  /**
+   * Enable waypoint roaming mode. Once enabled, boss roams the arena via
+   * BOSS_ROAM_WAYPOINTS instead of returning to home when no hero is in aggro range.
+   * Persists across respawns — called after Tier 2 kill.
+   */
+  enableRoaming(): void {
+    this.isRoaming = true;
+    this.roamWaypointIndex = 0;
+  }
+
+  /**
+   * Reset AI transient state for boss respawn.
+   * Clears aggro target and sticky timer. Does NOT reset isRoaming —
+   * roaming persists across respawns once enabled.
+   */
+  resetForRespawn(): void {
+    this.aggroTarget = null;
+    this.stickyTargetTimer = 0;
   }
 
   /**
@@ -84,8 +109,12 @@ export class BossAISystem {
       this.aggroTarget = closest;
       this.stickyTargetTimer = 2.0;
     } else {
-      // No heroes in aggro range -- return home
+      // No heroes in aggro range
       this.aggroTarget = null;
+      if (this.isRoaming) {
+        this.roamToNextWaypoint();
+        return;
+      }
       this.returnToHome(dt);
       return;
     }
@@ -221,6 +250,32 @@ export class BossAISystem {
       Math.sin(angle) * BOSS_MOVE_SPEED,
     );
     // IMPORTANT: Do NOT heal boss when returning (leash exploit prevention).
+  }
+
+  // ---------------------------------------------------------------------------
+  // Waypoint roaming
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Move boss toward the current roam waypoint. When within WAYPOINT_REACH_DIST,
+   * advance to the next waypoint (cycling through all waypoints).
+   */
+  private roamToNextWaypoint(): void {
+    const waypoint = BOSS_ROAM_WAYPOINTS[this.roamWaypointIndex];
+    const dist = Phaser.Math.Distance.Between(this.boss.x, this.boss.y, waypoint.x, waypoint.y);
+
+    if (dist < this.WAYPOINT_REACH_DIST) {
+      this.roamWaypointIndex = (this.roamWaypointIndex + 1) % BOSS_ROAM_WAYPOINTS.length;
+    }
+
+    // Move toward current (possibly updated) waypoint
+    const target = BOSS_ROAM_WAYPOINTS[this.roamWaypointIndex];
+    const angle = Math.atan2(target.y - this.boss.y, target.x - this.boss.x);
+    const body = this.boss.body as Phaser.Physics.Arcade.Body;
+    body.setVelocity(
+      Math.cos(angle) * BOSS_ROAM_SPEED,
+      Math.sin(angle) * BOSS_ROAM_SPEED,
+    );
   }
 
   // ---------------------------------------------------------------------------

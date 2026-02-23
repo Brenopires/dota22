@@ -169,6 +169,35 @@ export class BossEntity extends BaseEntity {
     return BOSS_BASE_ARMOR + this.minutesElapsed;
   }
 
+  /**
+   * Respawn the boss to full state after being killed.
+   * Resets HP, phase, physics body, and visuals. Called by BattleScene.scheduleBossRespawn().
+   */
+  respawnBoss(): void {
+    this.isAlive = true;
+    this.currentHP = this.maxHP;
+    this.phase = BossPhase.NORMAL;
+    this.attackTimer = 0;
+
+    // Re-enable physics body
+    const body = this.body as Phaser.Physics.Arcade.Body;
+    body.setEnable(true);
+    body.setCircle(BOSS_RADIUS, -BOSS_RADIUS, -BOSS_RADIUS);
+    body.setVelocity(0, 0);
+
+    // Restore visibility and transform
+    this.setVisible(true);
+    this.setAlpha(1);
+    this.setScale(1);
+    this.setAngle(0);
+
+    // Reset visual tint to NORMAL phase colors
+    this.bossCircle.setFillStyle(0x8B0000);
+    this.outerRing.setStrokeStyle(2, 0xff4444);
+
+    EventBus.emit(Events.BOSS_RESPAWNED, { boss: this });
+  }
+
   // ---------------------------------------------------------------------------
   // Combat overrides
   // ---------------------------------------------------------------------------

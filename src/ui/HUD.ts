@@ -15,7 +15,8 @@ interface KillFeedEntry {
 export class HUD {
   private scene: IBattleScene & Phaser.Scene;
   private timerText: Phaser.GameObjects.Text;
-  private killsText: Phaser.GameObjects.Text;
+  private scoreText: Phaser.GameObjects.Text;
+  private scoreBreakdownText: Phaser.GameObjects.Text;
   private hpText: Phaser.GameObjects.Text;
   private manaText: Phaser.GameObjects.Text;
   private heroNameText: Phaser.GameObjects.Text;
@@ -57,18 +58,20 @@ export class HUD {
       fontStyle: 'bold',
     }).setOrigin(0.5).setScrollFactor(0).setDepth(200);
 
-    // Kill score (top)
-    this.killsText = scene.add.text(GAME_WIDTH / 2, 56, '0 - 0', {
+    // Total score (top center, replacing kill-only display)
+    this.scoreText = scene.add.text(GAME_WIDTH / 2, 56, '0 - 0', {
       fontSize: '18px',
       color: '#aaaaaa',
       fontFamily: 'monospace',
     }).setOrigin(0.5).setScrollFactor(0).setDepth(200);
 
-    // Battle Trait indicator (below kill score)
+    // Battle Trait indicator (below score)
     const matchConfig = (scene as any).matchConfig;
+    let hasTraitIndicator = false;
     if (matchConfig?.traitId) {
       const traitDef = getTraitById(matchConfig.traitId);
       if (traitDef) {
+        hasTraitIndicator = true;
         const traitColorStr = '#' + Phaser.Display.Color.IntegerToColor(traitDef.color).color.toString(16).padStart(6, '0');
 
         // Trait background
@@ -86,6 +89,20 @@ export class HUD {
         }).setOrigin(0.5).setScrollFactor(0).setDepth(200);
       }
     }
+
+    // Score breakdown text (compact K/B/T/C per team)
+    // If trait indicator exists, place at y=92; otherwise y=76
+    const breakdownY = hasTraitIndicator ? 92 : 76;
+    this.scoreBreakdownText = scene.add.text(
+      GAME_WIDTH / 2,
+      breakdownY,
+      'K:0 B:0 T:0 C:0  |  K:0 B:0 T:0 C:0',
+      {
+        fontSize: '9px',
+        color: '#666666',
+        fontFamily: 'monospace',
+      }
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(200);
 
     // Hero name (bottom left)
     const heroName = scene.player.stats.name;
@@ -192,8 +209,33 @@ export class HUD {
       this.timerText.setColor('#ffffff');
     }
 
-    // Kills
-    this.killsText.setText(`${scene.teamAKills} - ${scene.teamBKills}`);
+    // Live four-source scoreboard
+    const score = scene.matchStateMachine?.getScore();
+    if (score) {
+      this.scoreText.setText(`${score.teamA} - ${score.teamB}`);
+
+      // Per-source breakdown: kills, boss kills, tower thresholds, camp clears
+      const killsA = scene.teamAKills;
+      const killsB = scene.teamBKills;
+      const bossA = score.bossKillsA;
+      const bossB = score.bossKillsB;
+      const twrA = score.towerThresholdA ? 1 : 0;
+      const twrB = score.towerThresholdB ? 1 : 0;
+      const campA = score.campClearsA;
+      const campB = score.campClearsB;
+      this.scoreBreakdownText.setText(
+        `K:${killsA} B:${bossA} T:${twrA} C:${campA}  |  K:${killsB} B:${bossB} T:${twrB} C:${campB}`
+      );
+
+      // Color code: player is team A → breakdown tinted blue, team B → tinted red
+      const battleScene = scene as any;
+      const isTeamA = !battleScene.matchConfig?.playerTeam || battleScene.matchConfig?.playerTeam === 'A';
+      const leftColor = isTeamA ? '#5588cc' : '#cc5555';
+      // Full per-segment coloring requires rich text — tint entire breakdown toward player's team
+      this.scoreBreakdownText.setColor(leftColor);
+    } else {
+      this.scoreText.setText(`${scene.teamAKills} - ${scene.teamBKills}`);
+    }
 
     // Player HP/Mana
     if (scene.player && scene.player.isAlive) {
@@ -287,7 +329,7 @@ export class HUD {
       }
     }
 
-    // Tower status indicators
+    // Tower status indicators — pass threshold flags from score
     this.updateTowerIndicator(
       battleScene.towerA,
       this.towerAGraphics,
@@ -295,6 +337,7 @@ export class HUD {
       GAME_WIDTH / 2 - 100 - 30, // barX: centered at GAME_WIDTH/2 - 100
       0x00aaff,
       'T-A',
+      score?.towerThresholdA ?? false,
     );
     this.updateTowerIndicator(
       battleScene.towerB,
@@ -303,6 +346,7 @@ export class HUD {
       GAME_WIDTH / 2 + 100 - 30, // barX: centered at GAME_WIDTH/2 + 100
       0xff4444,
       'T-B',
+      score?.towerThresholdB ?? false,
     );
 
     // Respawn overlay — visible when player is dead
@@ -371,6 +415,7 @@ export class HUD {
     barX: number,
     teamColor: number,
     baseName: string,
+    thresholdTriggered: boolean = false,
   ): void {
     g.clear();
     const barWidth = 60;
@@ -391,12 +436,21 @@ export class HUD {
         g.fillRoundedRect(barX, barY, fillWidth, barHeight, 2);
       }
 
+      // Gold accent line below tower bar when threshold has been scored
+      if (thresholdTriggered) {
+        g.fillStyle(0xFFD700, 0.9);
+        g.fillRect(barX, barY + barHeight + 1, barWidth, 2);
+      }
+
       // If disabled, grey overlay + [OFF] label
       if (tower.isDisabled()) {
         g.fillStyle(0x666666, 0.5);
         g.fillRoundedRect(barX, barY, barWidth, barHeight, 2);
         label.setText(`${baseName} [OFF]`);
         label.setColor('#666666');
+      } else if (thresholdTriggered) {
+        label.setText(`${baseName} [!2pt]`);
+        label.setColor('#FFD700');
       } else {
         label.setText(baseName);
         label.setColor(teamColor === 0x00aaff ? '#00aaff' : '#ff4444');
