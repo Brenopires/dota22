@@ -56,6 +56,14 @@ export const RANK_THRESHOLDS = [
   { name: 'Master', minMMR: 2000, color: 0xFF4500 },
 ] as const;
 
+export const TEAM_BALANCE = {
+  BASE_SCALE_FACTOR: 0.35,   // bonus per unit of size ratio (e.g., 3v1 → ratio 3 → rawBonus 0.70)
+  MMR_SCALE_FLOOR: 1000,     // MMR at and below which full bonus applies
+  MMR_SCALE_RANGE: 1000,     // MMR span over which bonus linearly shrinks to zero
+  MMR_SCALE_REDUCTION: 0.7,  // cap: even at MMR floor, only 70% of rawBonus is applied
+  MAX_BONUS_CAP: 1.5,        // absolute cap: smaller team stats never exceed 2.5x base
+} as const;
+
 export const ARENA_THEMES = ['stone_ruins', 'lava_pit', 'frozen_tundra', 'dark_forest', 'desert_dunes'] as const;
 export const ARENA_LAYOUTS = ['open', 'corridor', 'pillars', 'fortress', 'maze_light'] as const;
 
