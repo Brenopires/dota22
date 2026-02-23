@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT, RANK_THRESHOLDS, COLORS } from '../constants';
+import { GAME_WIDTH, GAME_HEIGHT, COLORS } from '../constants';
 import { StorageManager } from '../utils/StorageManager';
+import { getRank } from '../utils/RankUtils';
 
 export class MenuScene extends Phaser.Scene {
   constructor() {
@@ -9,7 +10,7 @@ export class MenuScene extends Phaser.Scene {
 
   create(): void {
     const playerData = StorageManager.load();
-    const rank = this.getRank(playerData.mmr);
+    const rank = getRank(playerData.mmr);
 
     this.cameras.main.fadeIn(400);
 
@@ -143,11 +144,4 @@ export class MenuScene extends Phaser.Scene {
     hitArea.on('pointerdown', callback);
   }
 
-  private getRank(mmr: number): { name: string; minMMR: number; color: number } {
-    let rank: { name: string; minMMR: number; color: number } = RANK_THRESHOLDS[0];
-    for (const r of RANK_THRESHOLDS) {
-      if (mmr >= r.minMMR) rank = r;
-    }
-    return rank;
-  }
 }

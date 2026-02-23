@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT, RANK_THRESHOLDS, COLORS } from '../constants';
+import { GAME_WIDTH, GAME_HEIGHT, COLORS } from '../constants';
 import { MatchResult } from '../types';
 import { StorageManager } from '../utils/StorageManager';
 import { heroDataMap } from '../heroes/heroData';
+import { getRank } from '../utils/RankUtils';
 
 export class ResultScene extends Phaser.Scene {
   constructor() {
@@ -130,7 +131,7 @@ export class ResultScene extends Phaser.Scene {
     });
 
     // Rank
-    const rank = this.getRank(playerData.mmr);
+    const rank = getRank(playerData.mmr);
     const rankColor = Phaser.Display.Color.IntegerToColor(rank.color).rgba;
     const rankText = this.add.text(GAME_WIDTH / 2, y0 + lineH * 9.5, `Rank: ${rank.name}`, {
       fontSize: '20px', color: rankColor, fontFamily: 'monospace', fontStyle: 'bold',
@@ -207,11 +208,4 @@ export class ResultScene extends Phaser.Scene {
     hitArea.on('pointerdown', callback);
   }
 
-  private getRank(mmr: number): { name: string; minMMR: number; color: number } {
-    let rank: { name: string; minMMR: number; color: number } = RANK_THRESHOLDS[0];
-    for (const r of RANK_THRESHOLDS) {
-      if (mmr >= r.minMMR) rank = r;
-    }
-    return rank;
-  }
 }
