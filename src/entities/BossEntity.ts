@@ -32,7 +32,7 @@ export class BossEntity extends BaseEntity {
   private baseMaxHP: number;
   private baseDamage: number;
   private minutesElapsed = 0;
-  private attackTimer = 0;
+  attackTimer = 0;
 
   // Visual references for phase-change tinting
   private bossCircle: Phaser.GameObjects.Arc;
