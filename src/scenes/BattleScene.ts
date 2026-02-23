@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { ARENA_WIDTH, ARENA_HEIGHT, MATCH_DURATION, MANA_REGEN_RATE, AI_UPDATE_INTERVAL, HERO_RADIUS, RESPAWN_DURATION, BOSS_KILL_BUFF_DAMAGE, BOSS_KILL_BUFF_DURATION, TOWER_DISABLE_DURATION } from '../constants';
+import { ARENA_WIDTH, ARENA_HEIGHT, MATCH_DURATION, MANA_REGEN_RATE, AI_UPDATE_INTERVAL, HERO_RADIUS, RESPAWN_DURATION, BOSS_KILL_BUFF_DAMAGE, BOSS_KILL_BUFF_DURATION, TOWER_DISABLE_DURATION, BOSS_TIER2_DAMAGE_AMP, BOSS_RESPAWN_DELAY } from '../constants';
 import { Team, MatchResult, MatchPhase, MatchConfig, BuffType, TraitDef } from '../types';
 import { Hero } from '../entities/Hero';
 import { HeroRegistry } from '../heroes/HeroRegistry';
@@ -71,6 +71,7 @@ export class BattleScene extends Phaser.Scene {
   towerB: TowerEntity | null = null;
   private bossScaleTimer: Phaser.Time.TimerEvent | null = null;
   private bossMinute = 0;
+  private bossKillCount = 0;
   private revivalTokenTeam: Team | null = null;
   private towerVictoryTeam: Team | null = null;
   traitSystem: TraitSystem | null = null;
@@ -100,6 +101,7 @@ export class BattleScene extends Phaser.Scene {
     this.towerB = null;
     this.bossMinute = 0;
     this.bossScaleTimer = null;
+    this.bossKillCount = 0;
     this.revivalTokenTeam = null;
     this.towerVictoryTeam = null;
     this.traitSystem = null;
@@ -560,13 +562,13 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private onBossKilled({ victim, killerId }: { victim: BaseEntity; killerId?: string }): void {
-    // Find the hero who struck the killing blow
     const killer = this.findHeroById(killerId);
-    if (!killer) return; // Edge case: boss killed by DoT with no source
-
+    if (!killer) return;
     const team = killer.team;
+    this.bossKillCount++;
 
-    // 1. Team-wide stat buff: +20 damage for 60s to all alive allies
+    // --- Tier 1 rewards (apply on ALL kills) ---
+    // Team-wide stat buff: +20 damage for 60s
     const allies = team === Team.A ? this.teamA : this.teamB;
     for (const ally of allies) {
       if (ally.isAlive) {
@@ -579,24 +581,63 @@ export class BattleScene extends Phaser.Scene {
         });
       }
     }
-
-    // 2. Revival token: next death on this team is prevented
+    // Revival token
     this.revivalTokenTeam = team;
-
-    // 3. XP reward: 100 XP to killer
+    // XP reward
     this.xpSystem.awardObjectiveXP(killerId!);
-
-    // 4. Disable enemy tower for 15 seconds
+    // Disable enemy tower
     const enemyTower = team === Team.A ? this.towerB : this.towerA;
     if (enemyTower && enemyTower.isAlive) {
       enemyTower.disable(TOWER_DISABLE_DURATION);
     }
 
-    // 5. Kill feed
-    this.hud.showKill('TEAM ' + team, 'ANCIENT GUARDIAN');
+    // --- Tier-specific logic ---
+    if (this.bossKillCount === 1) {
+      // Tier 1: standard rewards only + respawn boss
+      this.hud.showKill('TEAM ' + team, 'ANCIENT GUARDIAN');
+      this.showBossKillBanner(team);
+      this.scheduleBossRespawn();
+    } else if (this.bossKillCount === 2) {
+      // Tier 2: permanent damage amp + enable roaming + respawn
+      for (const ally of allies) {
+        if (ally.isAlive) {
+          ally.addBuff({
+            type: BuffType.STAT_BUFF,
+            value: BOSS_TIER2_DAMAGE_AMP,
+            duration: MATCH_DURATION,
+            remaining: MATCH_DURATION,
+            sourceId: 'boss_tier2_reward',
+          });
+        }
+      }
+      if (this.bossAI) {
+        this.bossAI.enableRoaming();
+      }
+      this.hud.showKill('TEAM ' + team, 'ANCIENT GUARDIAN (TIER 2)');
+      this.showBossKillBanner(team);
+      this.scheduleBossRespawn();
+    } else if (this.bossKillCount >= 3) {
+      // Tier 3: trigger Sudden Death — boss does NOT respawn
+      this.hud.showKill('TEAM ' + team, 'ANCIENT GUARDIAN (TIER 3)');
+      this.showBossKillBanner(team);
+      this.matchStateMachine.triggerSuddenDeath('boss_tier3');
+    }
+  }
 
-    // 6. Boss kill banner (screen-space overlay)
-    this.showBossKillBanner(team);
+  private scheduleBossRespawn(): void {
+    this.time.delayedCall(BOSS_RESPAWN_DELAY, () => {
+      if (this.boss && this.matchStateMachine.getPhase() !== MatchPhase.ENDED) {
+        this.boss.respawnBoss();
+        // Apply current minute scaling to respawned boss
+        if (this.bossMinute > 0) {
+          this.boss.scalePower(this.bossMinute);
+        }
+        // Reset AI state for respawn
+        if (this.bossAI) {
+          this.bossAI.resetForRespawn();
+        }
+      }
+    });
   }
 
   private onTowerDestroyed({ tower, destroyedTeam, killerId }: { tower: BaseEntity; destroyedTeam: Team; killerId?: string }): void {
