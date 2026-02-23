@@ -106,6 +106,17 @@ export interface ActiveBuff {
   tickTimer?: number;
 }
 
+export interface MatchConfig {
+  teamSizeA: number;
+  teamSizeB: number;
+  teamSize: number;   // backward compat — Math.max(teamSizeA, teamSizeB)
+  teamA: string[];
+  teamB: string[];
+  playerHero: string;
+  arenaTheme: string;
+  arenaLayout: string;
+}
+
 export interface MatchResult {
   won: boolean;
   draw: boolean;
@@ -116,6 +127,8 @@ export interface MatchResult {
   teamKills: number;
   enemyKills: number;
   teamSize: number;
+  teamSizeA?: number;
+  teamSizeB?: number;
   arenaTheme: string;
   arenaLayout: string;
   mmrChange: number;
