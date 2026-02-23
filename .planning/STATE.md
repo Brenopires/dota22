@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 ## Current Position
 
 Phase: 4 of 8 (Boss & Towers) — IN PROGRESS
-Plan: 1 of 6 — complete
-Status: Plan 04-01 complete — BossEntity with phase FSM, Team.NEUTRAL, Phase 4 type/event/constant foundations
-Last activity: 2026-02-23 — Completed 04-01 (BossEntity & type foundations)
+Plan: 2 of 6 — complete
+Status: Plan 04-02 complete — TowerEntity with AoE attack, out-of-combat regen, disable lifecycle
+Last activity: 2026-02-23 — Completed 04-02 (TowerEntity)
 
-Progress: [███████████] 53%
+Progress: [████████████] 56%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 17
+- Total plans completed: 18
 - Average duration: 2 min
-- Total execution time: 33 min
+- Total execution time: 35 min
 
 **By Phase:**
 
@@ -30,10 +30,10 @@ Progress: [███████████] 53%
 | 01-foundation | 5/5 | 12 min | 2 min |
 | 02-hero-identity | 6/6 | 13 min | 2 min |
 | 03-asymmetric-teams | 5/5 | 5 min | 1 min |
-| 04-boss-towers | 1/6 | 3 min | 3 min |
+| 04-boss-towers | 2/6 | 5 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 1 min, 1 min, 1 min, 1 min, 3 min
+- Last 5 plans: 1 min, 1 min, 1 min, 3 min, 2 min
 - Trend: fast
 
 *Updated after each plan completion*
@@ -99,6 +99,10 @@ Recent decisions affecting current work:
 - [04-01]: DYING threshold checked before ENRAGED in checkPhaseTransition() — handles massive damage that skips ENRAGED
 - [04-01]: scalePower() heals only HP delta (newMaxHP - oldMaxHP) — prevents boss from full-healing each minute
 - [04-01]: getArmor() returns BOSS_BASE_ARMOR + minutesElapsed — armor grows linearly each minute for increasing difficulty
+- [04-02]: die() duplicates idempotent guard + physics disable instead of calling super.die() — same pattern as BossEntity to avoid HERO_KILLED emission
+- [04-02]: getArmor() returns flat 10 — higher than heroes but no scaling (towers are static structures)
+- [04-02]: Health bar passes mana ratio 0 — towers have no mana system
+- [04-02]: Attack VFX line drawn in world-space (not container child) — endpoints span tower-to-target positions
 
 ### Pending Todos
 
@@ -114,5 +118,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 04-01-PLAN.md — BossEntity class with phase FSM, scaling, BOSS_KILLED death; Phase 4 types/constants/events
+Stopped at: Completed 04-02-PLAN.md — TowerEntity with AoE attack, out-of-combat regen, disable lifecycle
 Resume file: None
