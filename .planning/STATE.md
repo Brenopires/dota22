@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 ## Current Position
 
 Phase: 6 of 8 (Neutral Camps & Arena) — IN PROGRESS
-Plan: 3 of 5 — plans 01, 03 done
-Status: Phase 6 plan 03 complete — HASTE/CDR buff mechanics in Hero, camp clear scoring in MatchStateMachine
-Last activity: 2026-02-23 — Completed 06-03: Hero buff mechanics and camp scoring
+Plan: 4 of 5 — plans 01, 02, 03 done
+Status: Phase 6 plans 02+03 complete — NeutralMob entity, HASTE/CDR buff mechanics, camp scoring
+Last activity: 2026-02-23 — Completed 06-02: NeutralMob entity class
 
 Progress: [██████████████████] 73%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 27
+- Total plans completed: 28
 - Average duration: 2 min
-- Total execution time: 57 min
+- Total execution time: 59 min
 
 **By Phase:**
 
@@ -32,7 +32,7 @@ Progress: [██████████████████] 73%
 | 03-asymmetric-teams | 5/5 | 5 min | 1 min |
 | 04-boss-towers | 5/6 | 16 min | 3 min |
 | 05-battle-traits | 5/5 | 9 min | 2 min |
-| 06-neutral-camps | 2/5 | 3 min | 2 min |
+| 06-neutral-camps | 3/5 | 5 min | 2 min |
 
 **Recent Trend:**
 - Last 5 plans: 2 min, 3 min, 2 min, 2 min, 2 min
@@ -127,6 +127,9 @@ Recent decisions affecting current work:
 - [05-04]: Panel background expanded from 78px to 90px to fit gem indicator line at GAME_HEIGHT-25
 - [06-01]: CampType.COOLDOWN uses value 'cooldown' (not 'cdr') — enum keys describe camp type, not buff abbreviation; consistent with DAMAGE/SHIELD/HASTE pattern
 - [06-01]: BuffType.COOLDOWN_REDUCTION uses value 'cdr' — consistent with existing BuffType short-value convention
+- [06-02]: NeutralMob.die() does NOT call super.die() — duplicates idempotent guard + physics disable, emits CAMP_CLEARED; same pattern as BossEntity/TowerEntity (decision 04-01)
+- [06-02]: getUniqueId() returns 'camp_' + campType — serves as sourceId for camp buffs and killerId tracking in NeutralCampSystem
+- [06-02]: returnToHome() full-heals mob on arrival (unlike BossAISystem leash) — prevents ranged kiting exploit
 - [06-03]: HASTE stacks multiplicatively with slow factor — slowed 50% + hasted 25% = 62.5% speed (intentional, slow still meaningful)
 - [06-03]: campClears tracked separately (campClearsA/campClearsB) from kill score for Phase 7 scoring breakdown
 - [06-03]: killerId suffix '_A'/'_B' used to determine scoring team — consistent with Hero.getUniqueId() format
@@ -145,5 +148,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 06-03-PLAN.md — Hero buff mechanics and camp scoring
+Stopped at: Completed 06-02-PLAN.md — NeutralMob entity class
 Resume file: None
