@@ -1,10 +1,10 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT, COLORS } from '../constants';
-import { MatchOrchestrator } from '../systems/MatchOrchestrator';
+import { GAME_WIDTH, GAME_HEIGHT, COLORS, DRAFT_PICK_TIMEOUT } from '../constants';
+import { MatchOrchestrator, PartialMatchConfig } from '../systems/MatchOrchestrator';
+import { HeroRegistry } from '../heroes/HeroRegistry';
 import { heroDataMap } from '../heroes/heroData';
-import { HeroArchetype } from '../types';
+import { HeroArchetype, MatchConfig } from '../types';
 import { getTraitById } from '../traits/traitData';
-import { getGemById } from '../gems/gemData';
 
 const ARCHETYPE_COLORS: Record<string, string> = {
   [HeroArchetype.TANK]: '#4488cc',
@@ -15,14 +15,24 @@ const ARCHETYPE_COLORS: Record<string, string> = {
 };
 
 export class DraftScene extends Phaser.Scene {
-  private matchConfig!: ReturnType<typeof MatchOrchestrator.generateMatch>;
+  private partialConfig!: PartialMatchConfig;
+  private candidates: string[] = [];
+  private _countdownEvent: Phaser.Time.TimerEvent | null = null;
+  private _autoPick: Phaser.Time.TimerEvent | null = null;
+  private _picked = false;
 
   constructor() {
     super({ key: 'DraftScene' });
   }
 
   create(): void {
-    this.matchConfig = MatchOrchestrator.generateMatch();
+    // Generate partial match config (teamB, arena, trait) before hero is picked
+    this.partialConfig = MatchOrchestrator.generatePartialMatch();
+
+    // Reset pick guard on scene create (handles scene restart)
+    this._picked = false;
+    this._countdownEvent = null;
+    this._autoPick = null;
 
     this.cameras.main.fadeIn(400);
 
@@ -43,31 +53,38 @@ export class DraftScene extends Phaser.Scene {
       }).setDepth(-1);
     }
 
-    // Arena info header
-    const themeLabel = this.matchConfig.arenaTheme.replace(/_/g, ' ').toUpperCase();
-    const layoutLabel = this.matchConfig.arenaLayout.replace(/_/g, ' ').toUpperCase();
-    const arenaText = this.add.text(GAME_WIDTH / 2, 30, `ARENA: ${themeLabel} / ${layoutLabel}`, {
-      fontSize: '16px',
+    // Title header — "CHOOSE YOUR HERO"
+    const titleText = this.add.text(GAME_WIDTH / 2, 30, 'CHOOSE YOUR HERO', {
+      fontSize: '24px',
+      color: '#ffffff',
+      fontFamily: 'monospace',
+      fontStyle: 'bold',
+    }).setOrigin(0.5);
+    this.animateIn(titleText, 0);
+
+    // Arena info label (y=55)
+    const themeLabel = this.partialConfig.arenaTheme.replace(/_/g, ' ').toUpperCase();
+    const layoutLabel = this.partialConfig.arenaLayout.replace(/_/g, ' ').toUpperCase();
+    const arenaText = this.add.text(GAME_WIDTH / 2, 55, `ARENA: ${themeLabel} / ${layoutLabel}`, {
+      fontSize: '14px',
       color: '#888888',
       fontFamily: 'monospace',
     }).setOrigin(0.5);
-    this.animateIn(arenaText, 0);
+    this.animateIn(arenaText, 30);
 
-    // Battle Trait banner
-    const traitDef = getTraitById(this.matchConfig.traitId);
+    // Battle Trait banner (y=68-90) — uses partialConfig.traitId
+    const traitDef = getTraitById(this.partialConfig.traitId);
     if (traitDef) {
       const traitColorStr = '#' + Phaser.Display.Color.IntegerToColor(traitDef.color).color.toString(16).padStart(6, '0');
 
-      // Trait banner background
       const traitBg = this.add.graphics();
       traitBg.fillStyle(traitDef.color, 0.15);
-      traitBg.fillRoundedRect(GAME_WIDTH / 2 - 250, 42, 500, 22, 4);
+      traitBg.fillRoundedRect(GAME_WIDTH / 2 - 250, 66, 500, 24, 4);
       traitBg.lineStyle(1, traitDef.color, 0.3);
-      traitBg.strokeRoundedRect(GAME_WIDTH / 2 - 250, 42, 500, 22, 4);
+      traitBg.strokeRoundedRect(GAME_WIDTH / 2 - 250, 66, 500, 24, 4);
       this.animateIn(traitBg, 50);
 
-      // Trait text: "TRAIT: [icon] [name] — [description]"
-      const traitText = this.add.text(GAME_WIDTH / 2, 53, `TRAIT: ${traitDef.icon} ${traitDef.name} \u2014 ${traitDef.description}`, {
+      const traitText = this.add.text(GAME_WIDTH / 2, 78, `TRAIT: ${traitDef.icon} ${traitDef.name} \u2014 ${traitDef.description}`, {
         fontSize: '12px',
         color: traitColorStr,
         fontFamily: 'monospace',
@@ -76,186 +93,256 @@ export class DraftScene extends Phaser.Scene {
       this.animateIn(traitText, 50);
     }
 
-    // Team labels
-    const leftX = GAME_WIDTH * 0.27;
-    const rightX = GAME_WIDTH * 0.73;
+    // Generate 3 hero candidates (excluding teamB heroes)
+    this.candidates = this._pickThreeCandidates();
 
-    const yourTeamLabel = this.add.text(leftX, 75, 'YOUR TEAM', {
-      fontSize: '20px',
-      color: '#44cc88',
-      fontFamily: 'monospace',
-      fontStyle: 'bold',
-    }).setOrigin(0.5);
-    this.animateIn(yourTeamLabel, 100);
+    // Render pick cards and start countdown
+    this._renderPickCards();
+    this._startCountdown();
+  }
 
-    const enemyTeamLabel = this.add.text(rightX, 75, 'ENEMY TEAM', {
-      fontSize: '20px',
-      color: '#cc4444',
-      fontFamily: 'monospace',
-      fontStyle: 'bold',
-    }).setOrigin(0.5);
-    this.animateIn(enemyTeamLabel, 100);
+  // -------------------------------------------------------------------------
+  // Candidate generation
+  // -------------------------------------------------------------------------
 
-    // Render hero cards
-    const cardStartY = 110;
-    const { teamA, teamB, playerHero } = this.matchConfig;
-    const maxCards = Math.max(teamA.length, teamB.length);
-
-    for (let i = 0; i < teamA.length; i++) {
-      const heroId = teamA[i];
-      const isPlayer = heroId === playerHero;
-      const delay = 200 + i * 150;
-      this.renderHeroCard(leftX, cardStartY + i * 146, heroId, isPlayer, delay);
+  private _pickThreeCandidates(): string[] {
+    const all = HeroRegistry.getAllHeroIds();
+    const pool = all.filter(id => !this.partialConfig.teamB.includes(id));
+    // Fisher-Yates shuffle
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
     }
+    return pool.slice(0, 3);
+  }
 
-    for (let i = 0; i < teamB.length; i++) {
-      const heroId = teamB[i];
-      const delay = 200 + i * 150;
-      this.renderHeroCard(rightX, cardStartY + i * 146, heroId, false, delay);
-    }
+  // -------------------------------------------------------------------------
+  // Pick card rendering
+  // -------------------------------------------------------------------------
 
-    // VS divider
-    const vsText = this.add.text(GAME_WIDTH / 2, cardStartY + (maxCards * 146) / 2 - 73, 'VS', {
+  private _renderPickCards(): void {
+    const cardCenterY = 310;
+    const cardWidth = 280;
+    const cardHeight = 300;
+
+    const xPositions = [
+      GAME_WIDTH / 2 - 320,
+      GAME_WIDTH / 2,
+      GAME_WIDTH / 2 + 320,
+    ];
+
+    this.candidates.forEach((heroId, index) => {
+      const heroData = heroDataMap[heroId];
+      if (!heroData) return;
+
+      const cx = xPositions[index];
+      const cardLeft = cx - cardWidth / 2;
+      const cardTop = cardCenterY - cardHeight / 2;
+      const delay = 150 + index * 120;
+
+      const colorStr = '#' + Phaser.Display.Color.IntegerToColor(heroData.color).color.toString(16).padStart(6, '0');
+      const archetypeColor = ARCHETYPE_COLORS[heroData.archetype] || '#888888';
+
+      // Card background
+      const bg = this.add.graphics();
+      bg.fillStyle(0x111122, 0.85);
+      bg.fillRoundedRect(cardLeft, cardTop, cardWidth, cardHeight, 8);
+      this.animateIn(bg, delay);
+
+      // Card border (dim by default, brightened on hover)
+      const border = this.add.graphics();
+      border.lineStyle(2, heroData.color, 0.4);
+      border.strokeRoundedRect(cardLeft, cardTop, cardWidth, cardHeight, 8);
+      this.animateIn(border, delay);
+
+      // Hero circle (top of card, centered)
+      const circleY = cardTop + 56;
+      const textureKey = `hero_${heroId}`;
+      if (this.textures.exists(textureKey)) {
+        const img = this.add.image(cx, circleY, textureKey).setDisplaySize(56, 56);
+        this.animateIn(img, delay);
+      } else {
+        const circle = this.add.graphics();
+        circle.fillStyle(heroData.color, 1);
+        circle.fillCircle(cx, circleY, 28);
+        this.animateIn(circle, delay);
+      }
+
+      // Hero name
+      const nameText = this.add.text(cx, cardTop + 96, heroData.name, {
+        fontSize: '20px',
+        color: colorStr,
+        fontFamily: 'monospace',
+        fontStyle: 'bold',
+      }).setOrigin(0.5);
+      this.animateIn(nameText, delay);
+
+      // Archetype label
+      const archetypeText = this.add.text(cx, cardTop + 118, heroData.archetype.toUpperCase(), {
+        fontSize: '14px',
+        color: archetypeColor,
+        fontFamily: 'monospace',
+      }).setOrigin(0.5);
+      this.animateIn(archetypeText, delay);
+
+      // Q/W/E abilities
+      const slotKeys = ['Q', 'W', 'E'];
+      for (let i = 0; i < heroData.abilities.length && i < 3; i++) {
+        const ability = heroData.abilities[i];
+        const ay = cardTop + 144 + i * 32;
+
+        const slotLabel = this.add.text(cardLeft + 10, ay, `${slotKeys[i]}:`, {
+          fontSize: '12px',
+          color: '#ffffff',
+          fontFamily: 'monospace',
+          fontStyle: 'bold',
+        });
+        this.animateIn(slotLabel, delay + 50);
+
+        const abilityLine = this.add.text(cardLeft + 30, ay, `${ability.name} \u2014 ${ability.description}`, {
+          fontSize: '12px',
+          color: '#888888',
+          fontFamily: 'monospace',
+          wordWrap: { width: cardWidth - 36 },
+        });
+        this.animateIn(abilityLine, delay + 50);
+      }
+
+      // R ultimate (if present)
+      const ultAbility = heroData.abilities.find(a => a.isUltimate);
+      if (ultAbility) {
+        const ry = cardTop + 144 + 3 * 32 + 4;
+        const rLabel = this.add.text(cardLeft + 10, ry, 'R:', {
+          fontSize: '12px',
+          color: '#ffdd44',
+          fontFamily: 'monospace',
+          fontStyle: 'bold',
+        });
+        this.animateIn(rLabel, delay + 50);
+
+        const rLine = this.add.text(cardLeft + 30, ry, `${ultAbility.name} \u2014 ${ultAbility.description}`, {
+          fontSize: '12px',
+          color: '#ccaa22',
+          fontFamily: 'monospace',
+          wordWrap: { width: cardWidth - 36 },
+        });
+        this.animateIn(rLine, delay + 50);
+      }
+
+      // Invisible hit area — interactive with hand cursor
+      const hitArea = this.add.rectangle(cx, cardCenterY, cardWidth, cardHeight)
+        .setInteractive({ useHandCursor: true })
+        .setAlpha(0.001);
+
+      // Hover effects
+      hitArea.on('pointerover', () => {
+        this.tweens.add({
+          targets: [bg, border, nameText, archetypeText],
+          scaleX: 1.03,
+          scaleY: 1.03,
+          duration: 120,
+          ease: 'Sine.easeOut',
+        });
+        border.clear();
+        border.lineStyle(2, heroData.color, 1.0);
+        border.strokeRoundedRect(cardLeft, cardTop, cardWidth, cardHeight, 8);
+      });
+
+      hitArea.on('pointerout', () => {
+        this.tweens.add({
+          targets: [bg, border, nameText, archetypeText],
+          scaleX: 1,
+          scaleY: 1,
+          duration: 120,
+          ease: 'Sine.easeOut',
+        });
+        border.clear();
+        border.lineStyle(2, heroData.color, 0.4);
+        border.strokeRoundedRect(cardLeft, cardTop, cardWidth, cardHeight, 8);
+      });
+
+      hitArea.on('pointerdown', () => {
+        this._onCardClicked(heroId);
+      });
+
+      this.animateIn(hitArea, delay);
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // Countdown timer
+  // -------------------------------------------------------------------------
+
+  private _startCountdown(): void {
+    let remaining = DRAFT_PICK_TIMEOUT;
+
+    const timerText = this.add.text(GAME_WIDTH / 2, 500, `${remaining}`, {
       fontSize: '32px',
-      color: '#333333',
+      color: '#ffaa00',
       fontFamily: 'monospace',
       fontStyle: 'bold',
     }).setOrigin(0.5);
-    this.animateIn(vsText, 300);
 
-    // START BATTLE button
-    const buttonDelay = 200 + maxCards * 150 + 200;
-    this.createButton(GAME_WIDTH / 2, 650, 'START BATTLE', () => {
-      this.startBattle();
-    }, buttonDelay);
-
-    // Hint text
-    const hintText = this.add.text(GAME_WIDTH / 2, 685, 'SPACE or CLICK to begin', {
-      fontSize: '12px',
+    const hintText = this.add.text(GAME_WIDTH / 2, 535, `Click a hero to pick (auto-pick in ${remaining}s)`, {
+      fontSize: '14px',
       color: '#555555',
       fontFamily: 'monospace',
     }).setOrigin(0.5);
-    this.animateIn(hintText, buttonDelay + 100);
 
-    // SPACE key listener
-    this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE).on('down', () => {
-      this.startBattle();
+    this.animateIn(timerText, 400);
+    this.animateIn(hintText, 450);
+
+    this._countdownEvent = this.time.addEvent({
+      delay: 1000,
+      repeat: DRAFT_PICK_TIMEOUT - 1,
+      callback: () => {
+        remaining--;
+        timerText.setText(`${remaining}`);
+        hintText.setText(`Click a hero to pick (auto-pick in ${remaining}s)`);
+        if (remaining <= 5) {
+          timerText.setColor('#ff4444');
+        }
+      },
+    });
+
+    this._autoPick = this.time.delayedCall(DRAFT_PICK_TIMEOUT * 1000, () => {
+      if (!this._picked) {
+        this._onCardClicked(this.candidates[0]);
+      }
     });
   }
 
-  private startBattle(): void {
+  // -------------------------------------------------------------------------
+  // Pick handlers
+  // -------------------------------------------------------------------------
+
+  private _onCardClicked(heroId: string): void {
+    if (this._picked) return; // prevent double-pick
+    this._picked = true;
+
+    // Cancel timers immediately
+    this._countdownEvent?.remove();
+    this._autoPick?.remove();
+
+    this._confirmPick(heroId);
+  }
+
+  private _confirmPick(heroId: string): void {
+    const matchConfig: MatchConfig = MatchOrchestrator.finalizeMatch(heroId, this.partialConfig);
+
+    // Remove keyboard listeners before fade
     this.input.keyboard!.removeAllKeys();
+
     this.cameras.main.fadeOut(400, 0, 0, 0, (_cam: any, progress: number) => {
       if (progress === 1) {
-        this.scene.start('BattleScene', { matchConfig: this.matchConfig });
+        this.scene.start('BattleScene', { matchConfig });
       }
     });
   }
 
-  private renderHeroCard(cx: number, y: number, heroId: string, isPlayer: boolean, delay: number): void {
-    const heroData = heroDataMap[heroId];
-    if (!heroData) return;
-
-    const cardWidth = 280;
-    const cardLeft = cx - cardWidth / 2;
-    const imgSize = 48;
-    const textLeft = cardLeft + imgSize + 12;
-
-    // Card background
-    const bg = this.add.graphics();
-    bg.fillStyle(isPlayer ? 0x1a2a1a : 0x1a1a2a, 0.6);
-    bg.fillRoundedRect(cardLeft - 8, y - 4, cardWidth + 16, 136, 6);
-    if (isPlayer) {
-      bg.lineStyle(1, 0x44cc88, 0.5);
-      bg.strokeRoundedRect(cardLeft - 8, y - 4, cardWidth + 16, 136, 6);
-    }
-    this.animateIn(bg, delay);
-
-    // Hero texture
-    const textureKey = `hero_${heroId}`;
-    if (this.textures.exists(textureKey)) {
-      const img = this.add.image(cardLeft + imgSize / 2, y + imgSize / 2, textureKey)
-        .setDisplaySize(imgSize, imgSize);
-      this.animateIn(img, delay);
-    } else {
-      // Colored circle fallback
-      const fallback = this.add.graphics();
-      fallback.fillStyle(heroData.color, 1);
-      fallback.fillCircle(cardLeft + imgSize / 2, y + imgSize / 2, imgSize / 2 - 2);
-      this.animateIn(fallback, delay);
-    }
-
-    // Hero name
-    const colorStr = '#' + Phaser.Display.Color.IntegerToColor(heroData.color).color.toString(16).padStart(6, '0');
-    const nameText = this.add.text(textLeft, y + 2, heroData.name, {
-      fontSize: '18px',
-      color: colorStr,
-      fontFamily: 'monospace',
-      fontStyle: 'bold',
-    });
-    this.animateIn(nameText, delay);
-
-    // Archetype tag
-    const archetypeLabel = heroData.archetype.toUpperCase();
-    const archetypeColor = ARCHETYPE_COLORS[heroData.archetype] || '#888888';
-    const archText = this.add.text(textLeft, y + 22, archetypeLabel, {
-      fontSize: '12px',
-      color: archetypeColor,
-      fontFamily: 'monospace',
-    });
-    this.animateIn(archText, delay);
-
-    // Player marker
-    if (isPlayer) {
-      const youText = this.add.text(textLeft + 80, y + 20, '★ YOU', {
-        fontSize: '12px',
-        color: '#44cc88',
-        fontFamily: 'monospace',
-        fontStyle: 'bold',
-      });
-      this.animateIn(youText, delay);
-    }
-
-    // Ability lines
-    const abilityStartY = y + 50;
-    const slotKeys = ['Q', 'W', 'E'];
-    for (let i = 0; i < heroData.abilities.length && i < 3; i++) {
-      const ability = heroData.abilities[i];
-      const ay = abilityStartY + i * 18;
-
-      const slotText = this.add.text(cardLeft + 4, ay, `${slotKeys[i]}:`, {
-        fontSize: '12px',
-        color: '#ffffff',
-        fontFamily: 'monospace',
-        fontStyle: 'bold',
-      });
-      this.animateIn(slotText, delay + 50);
-
-      const abilityLine = this.add.text(cardLeft + 26, ay, `${ability.name} \u2014 ${ability.description}`, {
-        fontSize: '12px',
-        color: '#888888',
-        fontFamily: 'monospace',
-        wordWrap: { width: cardWidth - 22 },
-      });
-      this.animateIn(abilityLine, delay + 50);
-    }
-
-    // Gem info line (below abilities)
-    const gemId = this.matchConfig.gemAssignments?.[heroId];
-    if (gemId) {
-      const gemDef = getGemById(gemId);
-      if (gemDef) {
-        const gemColorStr = '#' + Phaser.Display.Color.IntegerToColor(gemDef.color).color.toString(16).padStart(6, '0');
-        const gemY = abilityStartY + 3 * 18 + 4; // below the 3 ability lines + small gap
-        const gemText = this.add.text(cardLeft + 4, gemY, `GEM: ${gemDef.icon} ${gemDef.name} \u2014 ${gemDef.description}`, {
-          fontSize: '11px',
-          color: gemColorStr,
-          fontFamily: 'monospace',
-        });
-        this.animateIn(gemText, delay + 100);
-      }
-    }
-  }
+  // -------------------------------------------------------------------------
+  // Helpers
+  // -------------------------------------------------------------------------
 
   private animateIn(obj: Phaser.GameObjects.GameObject, delay: number): void {
     const target = obj as any;
@@ -272,62 +359,5 @@ export class DraftScene extends Phaser.Scene {
         ease: 'Power2',
       });
     }
-  }
-
-  private createButton(x: number, y: number, label: string, callback: () => void, delay: number): void {
-    const w = 240, h = 50, r = 8;
-
-    const btnGraphics = this.add.graphics();
-    btnGraphics.fillStyle(0x333333, 1);
-    btnGraphics.fillRoundedRect(x - w / 2, y - h / 2, w, h, r);
-    btnGraphics.lineStyle(2, 0x44cc88, 1);
-    btnGraphics.strokeRoundedRect(x - w / 2, y - h / 2, w, h, r);
-
-    const glowGraphics = this.add.graphics();
-    glowGraphics.fillStyle(0x44cc88, 0.15);
-    glowGraphics.fillRoundedRect(x - w / 2 - 4, y - h / 2 - 4, w + 8, h + 8, r + 2);
-    glowGraphics.setAlpha(0);
-
-    const hitArea = this.add.rectangle(x, y, w, h)
-      .setInteractive({ useHandCursor: true })
-      .setAlpha(0.001);
-
-    const btnText = this.add.text(x, y, label, {
-      fontSize: '22px',
-      color: '#ffffff',
-      fontFamily: 'monospace',
-      fontStyle: 'bold',
-    }).setOrigin(0.5);
-
-    const targets = [btnGraphics, btnText, glowGraphics, hitArea];
-
-    hitArea.on('pointerover', () => {
-      this.tweens.add({
-        targets,
-        scaleX: 1.05,
-        scaleY: 1.05,
-        duration: 150,
-        ease: 'Sine.easeOut',
-      });
-      glowGraphics.setAlpha(1);
-    });
-
-    hitArea.on('pointerout', () => {
-      this.tweens.add({
-        targets,
-        scaleX: 1,
-        scaleY: 1,
-        duration: 150,
-        ease: 'Sine.easeOut',
-      });
-      glowGraphics.setAlpha(0);
-    });
-
-    hitArea.on('pointerdown', callback);
-
-    // Animate all button elements in
-    this.animateIn(btnGraphics, delay);
-    this.animateIn(glowGraphics, delay);
-    this.animateIn(btnText, delay);
   }
 }
