@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 ## Current Position
 
 Phase: 5 of 8 (Battle Traits & Gems) — IN PROGRESS
-Plan: 1 of ? — complete
-Status: Plan 05-01 complete — TraitDef/GemDef types, 8 traits, 8 gems data registries
-Last activity: 2026-02-23 — Completed 05-01 (trait & gem data registries)
+Plan: 2 of ? — complete
+Status: Plan 05-02 complete — TraitSystem runtime, trait/gem selection in MatchOrchestrator, BattleScene integration
+Last activity: 2026-02-23 — Completed 05-02 (TraitSystem runtime + BattleScene integration)
 
-Progress: [███████████████] 68%
+Progress: [████████████████] 71%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 22
+- Total plans completed: 23
 - Average duration: 2 min
-- Total execution time: 48 min
+- Total execution time: 51 min
 
 **By Phase:**
 
@@ -31,10 +31,10 @@ Progress: [███████████████] 68%
 | 02-hero-identity | 6/6 | 13 min | 2 min |
 | 03-asymmetric-teams | 5/5 | 5 min | 1 min |
 | 04-boss-towers | 5/6 | 16 min | 3 min |
-| 05-battle-traits | 1/? | 2 min | 2 min |
+| 05-battle-traits | 2/? | 5 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 2 min, 9 min, 2 min, 2 min, 2 min
+- Last 5 plans: 9 min, 2 min, 2 min, 2 min, 3 min
 - Trend: fast
 
 *Updated after each plan completion*
@@ -117,6 +117,11 @@ Recent decisions affecting current work:
 - [05-01]: No CDR gems — cooldown reduction interacts multiplicatively with cooldown-related passives
 - [05-01]: traitId and gemAssignments as required MatchConfig fields — compiler guides Plan 05-02 to add trait/gem selection
 - [05-01]: Incompatibility blacklists on vampiric_pact (bd_passive), executioner (ld_passive), spell_burn (fw_passive, vs_passive)
+- [05-02]: TraitSystem only instantiated for mechanic/rule_change traits with event hooks — stat-only traits handled via applyStatMods
+- [05-02]: HP floor Math.max(100, ...) in applyStatMods prevents glass_cannon exploit on low-HP heroes
+- [05-02]: handleOnDamageTaken uses payload.victim (not payload.entity) matching DAMAGE_TAKEN event shape from Hero.takeDamage()
+- [05-02]: Reflect damage only targets heroes (not bosses/towers) to prevent infinite damage loops
+- [05-02]: sudden_valor tracks elapsed minutes via 300 - timeRemaining for first-kill-per-minute rule
 
 ### Pending Todos
 
@@ -132,5 +137,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 05-01-PLAN.md (trait & gem data registries)
+Stopped at: Completed 05-02-PLAN.md (TraitSystem runtime + BattleScene integration)
 Resume file: None
