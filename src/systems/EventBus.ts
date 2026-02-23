@@ -39,6 +39,8 @@ export const Events = {
   TOWER_ENABLED:       'tower:enabled',
   TOWER_DAMAGED:       'tower:damaged',
   REVIVAL_TOKEN_USED:  'revival:token_used',
+  // Phase 5 additions:
+  TRAIT_APPLIED:       'trait:applied',
 } as const;
 
 /** Derived union type of all valid event keys. */
