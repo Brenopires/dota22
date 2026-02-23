@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { ARENA_WIDTH, ARENA_HEIGHT, MATCH_DURATION, MANA_REGEN_RATE, AI_UPDATE_INTERVAL, HERO_RADIUS, RESPAWN_DURATION } from '../constants';
-import { Team, MatchResult, MatchPhase, MatchConfig } from '../types';
+import { ARENA_WIDTH, ARENA_HEIGHT, MATCH_DURATION, MANA_REGEN_RATE, AI_UPDATE_INTERVAL, HERO_RADIUS, RESPAWN_DURATION, BOSS_KILL_BUFF_DAMAGE, BOSS_KILL_BUFF_DURATION, TOWER_DISABLE_DURATION } from '../constants';
+import { Team, MatchResult, MatchPhase, MatchConfig, BuffType } from '../types';
 import { Hero } from '../entities/Hero';
 import { HeroRegistry } from '../heroes/HeroRegistry';
 import { heroDataMap } from '../heroes/heroData';
@@ -67,6 +67,7 @@ export class BattleScene extends Phaser.Scene {
   towerB: TowerEntity | null = null;
   private bossScaleTimer: Phaser.Time.TimerEvent | null = null;
   private bossMinute = 0;
+  private revivalTokenTeam: Team | null = null;
 
   constructor() {
     super({ key: 'BattleScene' });
@@ -91,6 +92,7 @@ export class BattleScene extends Phaser.Scene {
     this.towerB = null;
     this.bossMinute = 0;
     this.bossScaleTimer = null;
+    this.revivalTokenTeam = null;
 
     // Use provided match config or generate new one
     this.matchConfig = data?.matchConfig ?? MatchOrchestrator.generateMatch();
@@ -252,6 +254,9 @@ export class BattleScene extends Phaser.Scene {
 
     // Subscribe to hero kills for respawn scheduling and kill feed
     EventBus.on(Events.HERO_KILLED, this.onHeroKilled, this);
+
+    // Subscribe to boss kills for rewards (buff, revival token, XP, tower disable)
+    EventBus.on(Events.BOSS_KILLED, this.onBossKilled, this);
 
     // Emit composition event and show the banner
     EventBus.emit(Events.MATCH_COMPOSITION_SET, { teamSizeA, teamSizeB, scalingMultiplier });
@@ -454,8 +459,136 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
+  private onBossKilled({ victim, killerId }: { victim: BaseEntity; killerId?: string }): void {
+    // Find the hero who struck the killing blow
+    const killer = this.findHeroById(killerId);
+    if (!killer) return; // Edge case: boss killed by DoT with no source
+
+    const team = killer.team;
+
+    // 1. Team-wide stat buff: +20 damage for 60s to all alive allies
+    const allies = team === Team.A ? this.teamA : this.teamB;
+    for (const ally of allies) {
+      if (ally.isAlive) {
+        ally.addBuff({
+          type: BuffType.STAT_BUFF,
+          value: BOSS_KILL_BUFF_DAMAGE,
+          duration: BOSS_KILL_BUFF_DURATION,
+          remaining: BOSS_KILL_BUFF_DURATION,
+          sourceId: 'boss_reward',
+        });
+      }
+    }
+
+    // 2. Revival token: next death on this team is prevented
+    this.revivalTokenTeam = team;
+
+    // 3. XP reward: 100 XP to killer
+    this.xpSystem.awardObjectiveXP(killerId!);
+
+    // 4. Disable enemy tower for 15 seconds
+    const enemyTower = team === Team.A ? this.towerB : this.towerA;
+    if (enemyTower && enemyTower.isAlive) {
+      enemyTower.disable(TOWER_DISABLE_DURATION);
+    }
+
+    // 5. Kill feed
+    this.hud.showKill('TEAM ' + team, 'ANCIENT GUARDIAN');
+
+    // 6. Boss kill banner (screen-space overlay)
+    this.showBossKillBanner(team);
+  }
+
+  private showBossKillBanner(team: Team): void {
+    const { width: W, height: H } = this.cameras.main;
+    const teamColor = team === Team.A ? '#00aaff' : '#ff4444';
+    const teamColorHex = team === Team.A ? 0x00aaff : 0xff4444;
+
+    const container = this.add.container(W / 2, H / 2 - 40);
+    container.setScrollFactor(0).setDepth(300);
+
+    // Semi-transparent background
+    const bg = this.add.graphics();
+    bg.fillStyle(0x000000, 0.8);
+    bg.fillRoundedRect(-180, -60, 360, 120, 14);
+    bg.lineStyle(2, teamColorHex, 0.6);
+    bg.strokeRoundedRect(-180, -60, 360, 120, 14);
+    container.add(bg);
+
+    // "BOSS SLAIN!" title
+    const title = this.add.text(0, -36, 'BOSS SLAIN!', {
+      fontSize: '28px',
+      color: '#FFD700',
+      fontFamily: 'monospace',
+      fontStyle: 'bold',
+      stroke: '#000000',
+      strokeThickness: 3,
+    }).setOrigin(0.5);
+    container.add(title);
+
+    // Buff info text
+    const buffInfo = this.add.text(0, 2, `Team ${team} gains +${BOSS_KILL_BUFF_DAMAGE} DMG for ${BOSS_KILL_BUFF_DURATION}s`, {
+      fontSize: '12px',
+      color: teamColor,
+      fontFamily: 'monospace',
+    }).setOrigin(0.5);
+    container.add(buffInfo);
+
+    // Revival token text
+    const tokenInfo = this.add.text(0, 22, 'Revival Token granted!', {
+      fontSize: '12px',
+      color: '#FFD700',
+      fontFamily: 'monospace',
+      fontStyle: 'bold',
+    }).setOrigin(0.5);
+    container.add(tokenInfo);
+
+    // Auto-dismiss after 4 seconds with fade
+    this.time.delayedCall(4000, () => {
+      this.tweens.add({
+        targets: container,
+        alpha: 0,
+        duration: 600,
+        onComplete: () => container.destroy(),
+      });
+    });
+  }
+
   private onHeroKilled({ victim, killerId }: { victim: BaseEntity; killerId?: string }): void {
+    // Safety check: only process hero entities
+    if (victim.entityType !== 'hero') return;
+
     const hero = victim as Hero;
+
+    // Check revival token BEFORE any death processing
+    if (this.revivalTokenTeam === hero.team) {
+      this.revivalTokenTeam = null; // Consume token
+      // Cancel death: restore to alive state
+      hero.isAlive = true;
+      hero.currentHP = Math.floor(hero.maxHP * 0.3); // Revive at 30% HP
+      const body = hero.body as Phaser.Physics.Arcade.Body;
+      body.setEnable(true);
+      body.setCircle(HERO_RADIUS, -HERO_RADIUS, -HERO_RADIUS);
+      // Visual feedback
+      hero.setAlpha(1);
+      hero.setVisible(true);
+      hero.setScale(1);
+      hero.setAngle(0);
+      EventBus.emit(Events.REVIVAL_TOKEN_USED, { hero });
+      // Show revival VFX
+      const vfx = (this as any).vfxManager;
+      if (vfx) {
+        vfx.spawnBurst(hero.x, hero.y, 'generic', 20, 0xFFD700);
+        vfx.screenFlash(0xFFD700, 300, 0.3);
+      }
+      // Show "REVIVED!" text at hero position
+      const reviveText = this.add.text(hero.x, hero.y - 40, 'REVIVED!', {
+        fontSize: '18px', color: '#FFD700', fontFamily: 'monospace', fontStyle: 'bold',
+        stroke: '#000000', strokeThickness: 3,
+      }).setOrigin(0.5).setDepth(100);
+      this.tweens.add({ targets: reviveText, y: reviveText.y - 50, alpha: 0, duration: 1500, onComplete: () => reviveText.destroy() });
+      return; // Skip ALL normal death processing (no kill counting, no respawn scheduling)
+    }
 
     // Kill counting
     if (hero.team === Team.A) this.teamBKills++;
@@ -595,6 +728,8 @@ export class BattleScene extends Phaser.Scene {
   shutdown(): void {
     EventBus.off(Events.HERO_KILLED, this.onHeroKilled, this);
     EventBus.off(Events.MATCH_STATE_CHANGE, this.onMatchStateChange, this);
+    EventBus.off(Events.BOSS_KILLED, this.onBossKilled, this);
+    this.revivalTokenTeam = null;
     if (this.matchStateMachine) {
       this.matchStateMachine.destroy();
     }
