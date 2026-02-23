@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 ## Current Position
 
 Phase: 7 of 8 (Scoring & Sudden Death) — IN PROGRESS
-Plan: 1 of 5 — complete
-Status: Phase 7 plan 01 complete — four-source scoring + SUDDEN_DEATH state foundation
-Last activity: 2026-02-23 — Completed 07-01: scoring types, constants, events, MatchStateMachine
+Plan: 3 of 5 — complete
+Status: Phase 7 plan 03 complete — live four-source scoreboard + tower threshold visual cue in HUD
+Last activity: 2026-02-23 — Completed 07-03: HUD scoreboard with K/B/T/C breakdown and threshold cue
 
 Progress: [████████████████████] 82%
 
@@ -33,7 +33,7 @@ Progress: [████████████████████] 82%
 | 04-boss-towers | 6/6 | 16 min | 3 min |
 | 05-battle-traits | 5/5 | 9 min | 2 min |
 | 06-neutral-camps | 5/5 | 9 min | 2 min |
-| 07-scoring-sudden-death | 1/5 | 2 min | 2 min |
+| 07-scoring-sudden-death | 3/5 | 5 min | 2 min |
 
 **Recent Trend:**
 - Last 5 plans: 2 min, 2 min, 2 min, 2 min, 2 min
@@ -144,6 +144,10 @@ Recent decisions affecting current work:
 - [07-01]: onBossKilled uses killerId.endsWith(_A/_B) — consistent with onCampCleared pattern, no Hero[] reference needed in MSM
 - [07-01]: getScore() returns full spread — callers get new fields automatically without API change
 - [07-01]: onTick() NOT modified — Sudden Death timer trigger is plan 04 responsibility as specified
+- [07-03]: scoreText replaces killsText — total score sourced from MatchStateMachine.getScore().teamA/B, not raw kill counters
+- [07-03]: scoreBreakdownText y-position decided at constructor time via hasTraitIndicator flag — avoids per-frame conditional
+- [07-03]: Breakdown text single-color tint toward player's team — full per-segment coloring would require Phaser rich text plugin
+- [07-03]: Tower threshold cue uses gold accent line + [!2pt] label — visible while tower alive, suppressed after destruction
 
 ### Pending Todos
 
@@ -159,5 +163,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 07-01-PLAN.md — four-source scoring + SUDDEN_DEATH state + Phase 7 constants/events
+Stopped at: Completed 07-03-PLAN.md — live HUD scoreboard with K/B/T/C breakdown + tower threshold visual cue
 Resume file: None
