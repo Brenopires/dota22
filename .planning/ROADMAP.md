@@ -63,15 +63,15 @@ Plans:
 4. An XP bar is visible in the HUD; heroes reach level 5+ in a typical 5-minute match and stats visibly increase on level-up.
 5. Combat event hooks (on-hit, on-kill, on-damage-taken) fire correctly and passives respond to them.
 
-**Plans:** TBD
+**Plans:** 6 plans
 
 Plans:
-- [ ] 02-01: Combat event hook architecture (on-hit, on-kill, on-damage-taken via EventBus)
-- [ ] 02-02: XPSystem (kill = 50 XP, objective = 100 XP; level thresholds; stat scaling)
-- [ ] 02-03: Ultimate ability (R slot) added to each existing hero + cooldown tracking
-- [ ] 02-04: Passive ability per hero + passive trigger integration with event hooks
-- [ ] 02-05: Hero roster completion (reach 6-10 heroes with distinct roles)
-- [ ] 02-06: XP bar + level-up HUD feedback
+- [ ] 02-01-PLAN.md — Type foundation: AbilityDef R slot, PassiveDef interface, HERO_HIT/DAMAGE_TAKEN/HERO_LEVELED_UP events + emissions
+- [ ] 02-02-PLAN.md — R-slot ultimates for all 13 heroes + abilityCooldowns[4] + R key input + AI ultimate logic
+- [ ] 02-03-PLAN.md — XPSystem (50 XP/kill, level thresholds, stat scaling) + Hero gainXP()/levelUp() + level-up VFX
+- [ ] 02-04-PLAN.md — Passive definitions for all 13 heroes + Hero passive subscription lifecycle + destroy() cleanup
+- [ ] 02-05-PLAN.md — HUD XP bar + level display + AbilityBar 4-slot layout with gold R slot
+- [ ] 02-06-PLAN.md — Human verification checkpoint (all 5 success criteria confirmed in live gameplay)
 
 ---
 
@@ -236,7 +236,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 5/5 | Complete | 2026-02-23 |
-| 2. Hero Identity | 0/6 | Not started | - |
+| 2. Hero Identity | 0/6 | In progress | - |
 | 3. Asymmetric Teams | 0/5 | Not started | - |
 | 4. Boss & Towers | 0/7 | Not started | - |
 | 5. Battle Traits & Gems | 0/5 | Not started | - |
