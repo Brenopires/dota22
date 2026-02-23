@@ -115,16 +115,15 @@ Plans:
 4. Each team has a Core Tower that damages nearby enemies, slowly regenerates HP when not under fire, and is disabled temporarily after the boss is killed.
 5. Destroying the enemy Core Tower immediately ends the match with a victory screen.
 
-**Plans:** TBD
+**Plans:** 6 plans
 
 Plans:
-- [ ] 04-01: BossEntity class (extends BaseEntity; neutral team; per-minute power scaling)
-- [ ] 04-02: BossAISystem (health-threshold FSM; 3 phases; distinct attack patterns per phase)
-- [ ] 04-03: Boss Tier 1 kill rewards (revival token drop; team-wide stat buff; 3pt scoring event)
-- [ ] 04-04: TowerEntity class (extends BaseEntity; high damage AoE; slow HP regen)
-- [ ] 04-05: Tower-boss interaction (boss kill disables tower temporarily)
-- [ ] 04-06: Tower destruction win condition (instant match end on tower death)
-- [ ] 04-07: Boss health bar UI + phase transition visualization
+- [ ] 04-01-PLAN.md — Type foundation (Team.NEUTRAL, BossPhase enum, events, constants) + BossEntity class
+- [ ] 04-02-PLAN.md — TowerEntity class (AoE attack, out-of-combat regen, disable mechanic)
+- [ ] 04-03-PLAN.md — BossAISystem (aggro FSM, phase-based attacks) + BattleScene boss/tower integration
+- [ ] 04-04-PLAN.md — Boss kill rewards (revival token, stat buff, tower disable) + tower destruction win condition
+- [ ] 04-05-PLAN.md — Boss health bar UI + tower status HUD indicators
+- [ ] 04-06-PLAN.md — Human verification checkpoint (all 5 success criteria confirmed in live gameplay)
 
 ---
 
@@ -238,7 +237,7 @@ Plans:
 | 1. Foundation | 5/5 | Complete | 2026-02-23 |
 | 2. Hero Identity | 6/6 | Complete | 2026-02-23 |
 | 3. Asymmetric Teams | 5/5 | Complete | 2026-02-22 |
-| 4. Boss & Towers | 0/7 | Not started | - |
+| 4. Boss & Towers | 0/6 | Not started | - |
 | 5. Battle Traits & Gems | 0/5 | Not started | - |
 | 6. Neutral Camps & Arena | 0/5 | Not started | - |
 | 7. Scoring & Sudden Death | 0/6 | Not started | - |
