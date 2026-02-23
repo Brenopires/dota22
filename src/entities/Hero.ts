@@ -161,10 +161,11 @@ export class Hero extends BaseEntity {
   }
 
   updateHero(dt: number): void {
-    // Update cooldowns
+    // Update cooldowns (with CDR buff acceleration)
+    const cdrFactor = this.getCooldownReductionFactor();
     for (let i = 0; i < this.abilityCooldowns.length; i++) {
       if (this.abilityCooldowns[i] > 0) {
-        this.abilityCooldowns[i] = Math.max(0, this.abilityCooldowns[i] - dt);
+        this.abilityCooldowns[i] = Math.max(0, this.abilityCooldowns[i] - dt * cdrFactor);
       }
     }
 
@@ -421,7 +422,29 @@ export class Hero extends BaseEntity {
 
   getMoveSpeed(): number {
     if (this.isStunned() || this.isRooted()) return 0;
-    return this.stats.moveSpeed * this.getSlowFactor();
+    let speed = this.stats.moveSpeed * this.getSlowFactor();
+    // Apply haste buffs (camp haste: value = 0.25 means +25% speed)
+    for (const buff of this.buffs) {
+      if (buff.type === BuffType.HASTE && buff.remaining > 0) {
+        speed *= (1 + buff.value);
+      }
+    }
+    return speed;
+  }
+
+  /**
+   * Returns CDR factor for cooldown tick acceleration.
+   * 1.0 = normal rate, 1.2 = 20% faster cooldowns.
+   * Multiple CDR buffs stack multiplicatively.
+   */
+  private getCooldownReductionFactor(): number {
+    let factor = 1;
+    for (const buff of this.buffs) {
+      if (buff.type === BuffType.COOLDOWN_REDUCTION && buff.remaining > 0) {
+        factor *= (1 + buff.value);
+      }
+    }
+    return factor;
   }
 
   getAttackDamage(): number {
