@@ -11,26 +11,26 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 
 Phase: 1 of 8 (Foundation)
 Plan: 5 of 5 in current phase
-Status: In progress
-Last activity: 2026-02-23 — Completed 01-04 (Respawn system wired via HERO_KILLED EventBus listener)
+Status: Awaiting human verification (checkpoint:human-verify gate)
+Last activity: 2026-02-23 — Completed 01-05 task 1 (HUD respawn overlay + timer finalization); awaiting player verification
 
-Progress: [████░░░░░░] 11%
+Progress: [█████░░░░░] 13%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
+- Total plans completed: 4 (01-05 task complete, awaiting verification)
 - Average duration: 3 min
-- Total execution time: 11 min
+- Total execution time: 12 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-foundation | 4/5 | 11 min | 3 min |
+| 01-foundation | 4/5 | 12 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 4 min, 2 min, 3 min, 2 min
+- Last 5 plans: 4 min, 2 min, 3 min, 2 min, 1 min
 - Trend: fast
 
 *Updated after each plan completion*
@@ -60,6 +60,9 @@ Recent decisions affecting current work:
 - [01-04]: onHeroKilled renamed from onHeroKill — completes naming alignment with EventBus payload convention established in plan 01-02
 - [01-04]: Physics body setCircle(HERO_RADIUS, -HERO_RADIUS, -HERO_RADIUS) must be called on respawn (not just setEnable) — die() zeroes radius via setCircle(0); without restoring it projectiles pass through respawned hero
 - [01-04]: playerRespawnEndTime uses Date.now() timestamp approach — simpler than a dedicated Phaser timer event; plan 01-05 HUD computes remaining seconds per frame
+- [01-05]: Timer circle radius increased from 25 to 32 — MM:SS text (e.g. '5:00') is wider than single integer '60'
+- [01-05]: White color reset added as else branch — without it, timer stays red after counting back up (e.g. Play Again reset)
+- [01-05]: Math.floor() applied to timeRemaining before formatTime — avoids edge case at second boundary
 
 ### Pending Todos
 
@@ -74,5 +77,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 01-04-PLAN.md (Respawn system: onHeroKilled, respawnHero, findHeroById, playerRespawnEndTime)
+Stopped at: 01-05-PLAN.md task 1 complete (commit 162ec65); paused at checkpoint:human-verify gate
 Resume file: None
