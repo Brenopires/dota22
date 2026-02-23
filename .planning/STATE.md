@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-22)
 
 **Core value:** Asymmetric chaos that feels like a skill test — being thrown into a 1v3 as the solo player at high MMR and winning through outplay, not handicaps.
-**Current focus:** Phase 8 — Draft & Ranked
+**Current focus:** Phase 8 — Draft & Ranked — COMPLETE (all phases done)
 
 ## Current Position
 
-Phase: 8 of 8 (Draft & Ranked) — IN PROGRESS
-Plan: 3 of 5 — done
-Status: Plan 08-03 complete — DraftScene rewritten as interactive pick-from-3 hero selector with countdown
-Last activity: 2026-02-23 — Completed 08-03: DraftScene pick cards, countdown timer, PartialMatchConfig pipeline
+Phase: 8 of 8 (Draft & Ranked) — COMPLETE
+Plan: 4 of 4 — all done
+Status: Phase 8 complete — all 4 success criteria verified (tsc + grep artifact checks)
+Last activity: 2026-02-23 — Completed 08-04: Phase 8 verification + STATE/ROADMAP update
 
-Progress: [█████████████████████] 92%
+Progress: [████████████████████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 35
+- Total plans completed: 36
 - Average duration: 2 min
-- Total execution time: 73 min
+- Total execution time: 75 min
 
 **By Phase:**
 
@@ -34,7 +34,7 @@ Progress: [█████████████████████] 92%
 | 05-battle-traits | 5/5 | 9 min | 2 min |
 | 06-neutral-camps | 5/5 | 9 min | 2 min |
 | 07-scoring-sudden-death | 5/5 | 9 min | 2 min |
-| 08-draft-ranked | 3/5 | 6 min | 2 min |
+| 08-draft-ranked | 4/4 | 8 min | 2 min |
 
 **Recent Trend:**
 - Last 5 plans: 2 min, 2 min, 2 min, 2 min, 2 min
@@ -170,6 +170,7 @@ Recent decisions affecting current work:
 - [08-03]: Tasks 1+2 implemented in single pass (same file) — no intermediate stub commit needed; both methods fully implemented together
 - [08-03]: Card border hover redraws graphics (clear + redraw) rather than tween on alpha — Phaser Graphics lineStyle alpha cannot be tweened directly
 - [08-03]: Hit area is invisible Rectangle with setInteractive — clean separation between visual card layer and click boundary
+- [08-04]: Phase 8 verified complete via tsc + grep artifact checks — all 4 success criteria confirmed, 4/4 PASS, entire 8-phase roadmap complete
 
 ### Pending Todos
 
@@ -185,5 +186,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 08-03-PLAN.md — DraftScene interactive pick-from-3 with countdown timer
+Stopped at: Completed 08-04-PLAN.md — Phase 8 verification + STATE/ROADMAP update — ALL PHASES COMPLETE
 Resume file: None

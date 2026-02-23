@@ -17,7 +17,7 @@ Rift Clash evolves from a working arena brawler into a competitive asymmetric he
 - [x] **Phase 5: Battle Traits & Gems** - TraitRegistry, per-match trait assignment, random Gem power-ups
 - [x] **Phase 6: Neutral Camps & Arena** - 4 camp types, 60s respawn, buff grants, arena zone layout
 - [x] **Phase 7: Scoring & Sudden Death** - Full scoring system, Boss Tier 2/3, Sudden Death at 5:00 and via boss Tier 3
-- [ ] **Phase 8: Draft & Ranked** - Pick-from-3 draft UI, rank tier ladder, ±40 MMR shifts
+- [x] **Phase 8: Draft & Ranked** - Pick-from-3 draft UI, rank tier ladder, ±40 MMR shifts
 
 ---
 
@@ -220,10 +220,10 @@ Plans:
 **Plans:** 4 plans
 
 Plans:
-- [ ] 08-01-PLAN.md — Rank tier fix (5 tiers) + flat ±40 MMR + getRank utility extraction
-- [ ] 08-02-PLAN.md — MatchOrchestrator partial/finalize split for draft flow
-- [ ] 08-03-PLAN.md — DraftScene pick-from-3 interactive refactor with countdown
-- [ ] 08-04-PLAN.md — Phase 8 verification + STATE/ROADMAP completion
+- [x] 08-01-PLAN.md — Rank tier fix (5 tiers) + flat ±40 MMR + getRank utility extraction
+- [x] 08-02-PLAN.md — MatchOrchestrator partial/finalize split for draft flow
+- [x] 08-03-PLAN.md — DraftScene pick-from-3 interactive refactor with countdown
+- [x] 08-04-PLAN.md — Phase 8 verification + STATE/ROADMAP completion
 
 ---
 
@@ -240,4 +240,4 @@ Plans:
 | 5. Battle Traits & Gems | 5/5 | Complete | 2026-02-23 |
 | 6. Neutral Camps & Arena | 5/5 | Complete | 2026-02-23 |
 | 7. Scoring & Sudden Death | 5/5 | Complete | 2026-02-23 |
-| 8. Draft & Ranked | 0/4 | Not started | - |
+| 8. Draft & Ranked | 4/4 | Complete | 2026-02-23 |
