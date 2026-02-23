@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { AIState, HeroArchetype, Team } from '../types';
 import { Hero } from '../entities/Hero';
 import { AIPersonality, AIProfile } from './AIPersonality';
-import { AI_DECISION_DELAY_MIN, AI_DECISION_DELAY_MAX } from '../constants';
+import { AI_DECISION_DELAY_MIN, AI_DECISION_DELAY_MAX, FOCUS_PENALTY_PER_ATTACKER } from '../constants';
 
 export class AIController {
   hero: Hero;
@@ -27,7 +27,11 @@ export class AIController {
     return (AI_DECISION_DELAY_MIN + Math.random() * (AI_DECISION_DELAY_MAX - AI_DECISION_DELAY_MIN)) / 1000;
   }
 
-  update(): void {
+  get currentTarget(): Hero | null {
+    return this.target;
+  }
+
+  update(targetCountMap?: Map<string, number>): void {
     if (!this.hero.isAlive || this.hero.isStunned()) {
       this.hero.body?.setVelocity(0, 0);
       return;
@@ -49,7 +53,7 @@ export class AIController {
     }
 
     // Select target
-    this.target = this.selectTarget(enemies);
+    this.target = this.selectTarget(enemies, targetCountMap ?? new Map());
     if (!this.target) {
       this.state = AIState.IDLE;
       this.hero.body?.setVelocity(0, 0);
@@ -97,37 +101,37 @@ export class AIController {
     this.previousState = this.state;
   }
 
-  private selectTarget(enemies: Hero[]): Hero | null {
+  private selectTarget(enemies: Hero[], targetCountMap: Map<string, number>): Hero | null {
     if (enemies.length === 0) return null;
 
-    switch (this.profile.targetPriority) {
-      case 'lowest_hp': {
-        let lowestHP = Infinity;
-        let target: Hero | null = null;
-        for (const e of enemies) {
-          if (e.currentHP < lowestHP) {
-            lowestHP = e.currentHP;
-            target = e;
-          }
-        }
-        return target;
+    // Score each enemy — lower score = higher priority target
+    const scored = enemies.map(e => {
+      const overlapCount = targetCountMap.get(e.getUniqueId()) ?? 0;
+      const focusPenalty = overlapCount * FOCUS_PENALTY_PER_ATTACKER;
+
+      let baseScore: number;
+      switch (this.profile.targetPriority) {
+        case 'lowest_hp':
+          // Lower HP ratio → lower score → preferred; 0 = critical, 1 = full HP
+          baseScore = e.currentHP / e.stats.maxHP;
+          break;
+        case 'closest':
+          // Normalize distance by arena max diagonal (~2000px)
+          baseScore = this.hero.distanceTo(e) / 2000;
+          break;
+        case 'highest_threat':
+        default:
+          baseScore = 0.5; // neutral; jitter will spread ties
+          break;
       }
-      case 'closest': {
-        let closestDist = Infinity;
-        let target: Hero | null = null;
-        for (const e of enemies) {
-          const dist = this.hero.distanceTo(e);
-          if (dist < closestDist) {
-            closestDist = dist;
-            target = e;
-          }
-        }
-        return target;
-      }
-      case 'highest_threat':
-      default:
-        return enemies[0];
-    }
+
+      // Jitter ±0.1 — prevents synchronized lock-step across all AIs on same tick
+      const jitter = (Math.random() - 0.5) * 0.2;
+      return { hero: e, score: baseScore + focusPenalty + jitter };
+    });
+
+    scored.sort((a, b) => a.score - b.score);
+    return scored[0].hero;
   }
 
   private shouldUseUltimate(): boolean {

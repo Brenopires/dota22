@@ -56,6 +56,7 @@ export class BattleScene extends Phaser.Scene {
   projectiles!: Phaser.GameObjects.Group;
   areaEffects!: Phaser.GameObjects.Group;
   aiTimer = 0;
+  private targetCountMap: Map<string, number> = new Map();
   matchConfig!: MatchConfig;
 
   constructor() {
@@ -73,6 +74,7 @@ export class BattleScene extends Phaser.Scene {
     this.teamB = [];
     this.aiControllers = [];
     this.aiTimer = 0;
+    this.targetCountMap = new Map();
     this.respawnTimers = new Map();
 
     // Use provided match config or generate new one
@@ -255,9 +257,21 @@ export class BattleScene extends Phaser.Scene {
     this.aiTimer += delta;
     if (this.aiTimer >= AI_UPDATE_INTERVAL) {
       this.aiTimer = 0;
+
+      // Rebuild target count map — track how many AIs are targeting each enemy (alive only)
+      this.targetCountMap.clear();
+      for (const ai of this.aiControllers) {
+        const t = ai.currentTarget;
+        if (t && t.isAlive) {
+          const id = t.getUniqueId();
+          this.targetCountMap.set(id, (this.targetCountMap.get(id) ?? 0) + 1);
+        }
+      }
+
+      // Pass map to each AI update
       for (const ai of this.aiControllers) {
         if (ai.hero.isAlive) {
-          ai.update();
+          ai.update(this.targetCountMap);
         }
       }
     }

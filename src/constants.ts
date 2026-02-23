@@ -23,6 +23,8 @@ export const AI_UPDATE_INTERVAL = 200; // ms
 export const AI_DECISION_DELAY_MIN = 150; // ms
 export const AI_DECISION_DELAY_MAX = 400; // ms
 
+export const FOCUS_PENALTY_PER_ATTACKER = 0.2; // score penalty per additional AI already targeting same enemy
+
 export const MANA_REGEN_RATE = 5; // per second
 
 export const DAMAGE_NUMBER_DURATION = 800;
