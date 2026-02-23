@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-22)
 
 **Core value:** Asymmetric chaos that feels like a skill test — being thrown into a 1v3 as the solo player at high MMR and winning through outplay, not handicaps.
-**Current focus:** Phase 7 — Scoring & Sudden Death
+**Current focus:** Phase 8 — Draft & Ranked
 
 ## Current Position
 
-Phase: 7 of 8 (Scoring & Sudden Death) — IN PROGRESS
-Plan: 4 of 5 — complete
-Status: Phase 7 plan 04 complete — Sudden Death system: 5:00 tie trigger, respawn cancellation, team wipe detection, HUD overlay
-Last activity: 2026-02-23 — Completed 07-04: Sudden Death system across MatchStateMachine, BattleScene, HUD
+Phase: 7 of 8 (Scoring & Sudden Death) — COMPLETE
+Plan: 5 of 5 — all done
+Status: Phase 7 complete — all 5 success criteria verified
+Last activity: 2026-02-23 — Completed 07-05: Phase 7 verification + STATE/ROADMAP update
 
-Progress: [████████████████████] 84%
+Progress: [█████████████████████] 87.5%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 32
+- Total plans completed: 33
 - Average duration: 2 min
-- Total execution time: 67 min
+- Total execution time: 69 min
 
 **By Phase:**
 
@@ -33,7 +33,7 @@ Progress: [████████████████████] 84%
 | 04-boss-towers | 6/6 | 16 min | 3 min |
 | 05-battle-traits | 5/5 | 9 min | 2 min |
 | 06-neutral-camps | 5/5 | 9 min | 2 min |
-| 07-scoring-sudden-death | 4/5 | 7 min | 2 min |
+| 07-scoring-sudden-death | 5/5 | 9 min | 2 min |
 
 **Recent Trend:**
 - Last 5 plans: 2 min, 2 min, 2 min, 2 min, 2 min
@@ -158,6 +158,7 @@ Recent decisions affecting current work:
 - [07-04]: teamAAllDead/teamBAllDead check runs after every SD kill via Array.every() — O(n) with n<=5, no performance concern
 - [07-04]: scheduleBossRespawn callback guards !== SUDDEN_DEATH alongside !== ENDED — boss does not respawn after SD entry
 - [07-04]: isSuddenDeath flag set once via showSuddenDeathOverlay() method call — consistent with HUD polling-first pattern, no EventBus subscription needed
+- [07-05]: Phase 7 verified complete via tsc + grep artifact checks — all 5 success criteria confirmed, 5/5 PASS
 
 ### Pending Todos
 
@@ -173,5 +174,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 07-04-PLAN.md — Sudden Death system: timer tie trigger, respawn cancellation, team wipe detection, HUD overlay
+Stopped at: Completed 07-05-PLAN.md — Phase 7 verification and state update — Phase 7 COMPLETE
 Resume file: None

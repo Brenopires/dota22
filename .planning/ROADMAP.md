@@ -16,7 +16,7 @@ Rift Clash evolves from a working arena brawler into a competitive asymmetric he
 - [x] **Phase 4: Boss & Towers** - BossEntity (Tier 1), multi-phase boss AI, tower entities with destruction win
 - [x] **Phase 5: Battle Traits & Gems** - TraitRegistry, per-match trait assignment, random Gem power-ups
 - [x] **Phase 6: Neutral Camps & Arena** - 4 camp types, 60s respawn, buff grants, arena zone layout
-- [ ] **Phase 7: Scoring & Sudden Death** - Full scoring system, Boss Tier 2/3, Sudden Death at 5:00 and via boss Tier 3
+- [x] **Phase 7: Scoring & Sudden Death** - Full scoring system, Boss Tier 2/3, Sudden Death at 5:00 and via boss Tier 3
 - [ ] **Phase 8: Draft & Ranked** - Pick-from-3 draft UI, rank tier ladder, ±40 MMR shifts
 
 ---
@@ -195,11 +195,11 @@ Plans:
 **Plans:** 5 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — Type foundation + four-source scoring (SUDDEN_DEATH state, constants, events, MSM boss/tower scoring)
-- [ ] 07-02-PLAN.md — Boss Tier 2 (respawn, damage amp, waypoint roaming) + BattleScene kill count tracking
-- [ ] 07-03-PLAN.md — Live HUD scoreboard (total score + breakdown) + tower threshold visual cue
-- [ ] 07-04-PLAN.md — Sudden Death triggers (5:00 tie + boss Tier 3) + respawn guard + team wipe + SD HUD overlay
-- [ ] 07-05-PLAN.md — Phase 7 verification + STATE/ROADMAP completion update
+- [x] 07-01-PLAN.md — Type foundation + four-source scoring (SUDDEN_DEATH state, constants, events, MSM boss/tower scoring)
+- [x] 07-02-PLAN.md — Boss Tier 2 (respawn, damage amp, waypoint roaming) + BattleScene kill count tracking
+- [x] 07-03-PLAN.md — Live HUD scoreboard (total score + breakdown) + tower threshold visual cue
+- [x] 07-04-PLAN.md — Sudden Death triggers (5:00 tie + boss Tier 3) + respawn guard + team wipe + SD HUD overlay
+- [x] 07-05-PLAN.md — Phase 7 verification + STATE/ROADMAP completion update
 
 ---
 
@@ -239,5 +239,5 @@ Plans:
 | 4. Boss & Towers | 6/6 | Complete | 2026-02-23 |
 | 5. Battle Traits & Gems | 5/5 | Complete | 2026-02-23 |
 | 6. Neutral Camps & Arena | 5/5 | Complete | 2026-02-23 |
-| 7. Scoring & Sudden Death | 0/5 | In Progress | - |
+| 7. Scoring & Sudden Death | 5/5 | Complete | 2026-02-23 |
 | 8. Draft & Ranked | 0/4 | Not started | - |
