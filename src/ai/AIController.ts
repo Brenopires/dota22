@@ -130,7 +130,17 @@ export class AIController {
     }
   }
 
+  private shouldUseUltimate(): boolean {
+    if (Math.random() > 0.3) return false; // AI uses ult only 30% of chances
+    if (!this.hero.stats.abilities[3]) return false;
+    if (this.hero.abilityCooldowns[3] > 0) return false;
+    if (this.hero.currentMana < this.hero.stats.abilities[3].manaCost) return false;
+    return true;
+  }
+
   private shouldUseAbility(distToTarget: number): boolean {
+    if (this.shouldUseUltimate()) return true;
+
     if (Math.random() > this.profile.abilityPriority) return false;
 
     // Check if any ability is ready
@@ -244,7 +254,7 @@ export class AIController {
     if (!this.target) return;
 
     // Prioritize: Ultimate first (if ready), then highest damage
-    const abilityOrder = [2, 0, 1]; // E, Q, W priority
+    const abilityOrder = [3, 2, 0, 1]; // R (ultimate), E, Q, W priority
 
     for (const slot of abilityOrder) {
       if (slot >= this.hero.stats.abilities.length) continue;

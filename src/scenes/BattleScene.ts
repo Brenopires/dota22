@@ -40,6 +40,7 @@ export class BattleScene extends Phaser.Scene {
     I: Phaser.Input.Keyboard.Key;
     O: Phaser.Input.Keyboard.Key;
     P: Phaser.Input.Keyboard.Key;
+    R: Phaser.Input.Keyboard.Key;
     ONE: Phaser.Input.Keyboard.Key;
     TWO: Phaser.Input.Keyboard.Key;
     THREE: Phaser.Input.Keyboard.Key;
@@ -147,6 +148,7 @@ export class BattleScene extends Phaser.Scene {
       I: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.I),
       O: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.O),
       P: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.P),
+      R: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.R),
       ONE: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ONE),
       TWO: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.TWO),
       THREE: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.THREE),
@@ -281,6 +283,9 @@ export class BattleScene extends Phaser.Scene {
     }
     if (Phaser.Input.Keyboard.JustDown(this.keys.P) || Phaser.Input.Keyboard.JustDown(this.keys.THREE)) {
       this.player.useAbility(2, worldPoint.x, worldPoint.y);
+    }
+    if (Phaser.Input.Keyboard.JustDown(this.keys.R)) {
+      this.player.useAbility(3, worldPoint.x, worldPoint.y);
     }
 
     // Auto-attack
