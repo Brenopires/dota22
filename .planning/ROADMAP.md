@@ -166,14 +166,14 @@ Plans:
 3. Clearing a camp grants every hero on the killing team a 30-second buff matching the camp type; the buff icon appears in the HUD.
 4. Neutral camp clears contribute 1 point per camp to the scoring system and appear in the kill feed.
 
-**Plans:** TBD
+**Plans:** 5 plans
 
 Plans:
-- [ ] 06-01: Arena zone rework (named zones: boss area, tower positions, N/S/E/W camp positions)
-- [ ] 06-02: NeutralMob entity (extends BaseEntity; simple pursuit FSM; scales with minute)
-- [ ] 06-03: NeutralCampSystem (4 camp types; spawn/respawn scheduling; buff grant on kill)
-- [ ] 06-04: Camp buff integration (30s team buff per camp type; HUD buff icons)
-- [ ] 06-05: Camp scoring integration (1pt per clear; kill feed notification)
+- [ ] 06-01-PLAN.md — Type foundation: CampType enum, BuffType.HASTE/COOLDOWN_REDUCTION, camp constants, EventBus events
+- [ ] 06-02-PLAN.md — NeutralMob entity (extends BaseEntity, die() emits CAMP_CLEARED, simple visuals, scaling, respawn method)
+- [ ] 06-03-PLAN.md — Hero HASTE/CDR buff mechanics + MatchStateMachine camp scoring
+- [ ] 06-04-PLAN.md — NeutralCampSystem (spawn, AI, respawn, buff grant, kill feed) + BattleScene integration
+- [ ] 06-05-PLAN.md — HUD camp buff icons + Phase 6 verification + STATE/ROADMAP update
 
 ---
 
@@ -239,6 +239,6 @@ Plans:
 | 3. Asymmetric Teams | 5/5 | Complete | 2026-02-22 |
 | 4. Boss & Towers | 6/6 | Complete | 2026-02-23 |
 | 5. Battle Traits & Gems | 5/5 | Complete | 2026-02-23 |
-| 6. Neutral Camps & Arena | 0/5 | Not started | - |
+| 6. Neutral Camps & Arena | 0/5 | Planned | - |
 | 7. Scoring & Sudden Death | 0/6 | Not started | - |
 | 8. Draft & Ranked | 0/4 | Not started | - |
