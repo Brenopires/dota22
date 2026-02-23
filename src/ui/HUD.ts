@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT } from '../constants';
+import { GAME_WIDTH, GAME_HEIGHT, SUDDEN_DEATH_COLOR } from '../constants';
 import { IBattleScene } from '../types';
 import { AbilityBar } from './AbilityBar';
 import { BossHealthBar } from './BossHealthBar';
@@ -38,6 +38,7 @@ export class HUD {
   private gemText: Phaser.GameObjects.Text | null = null;
   private buffIconTexts: Phaser.GameObjects.Text[] = [];
   private buffIconBgs: Phaser.GameObjects.Graphics[] = [];
+  private isSuddenDeath = false;
 
   constructor(scene: IBattleScene & Phaser.Scene) {
     this.scene = scene;
@@ -352,36 +353,57 @@ export class HUD {
     // Respawn overlay — visible when player is dead
     const player = scene.player;
     if (player && !player.isAlive) {
-      const secondsLeft = Math.max(0, Math.ceil((scene.playerRespawnEndTime - Date.now()) / 1000));
+      if (this.isSuddenDeath) {
+        // Show ELIMINATED overlay (no countdown) — replaced respawn during Sudden Death
+        if (!this.respawnOverlay) {
+          this.respawnOverlay = scene.add.container(GAME_WIDTH / 2, GAME_HEIGHT / 2);
+          this.respawnOverlay.setScrollFactor(0).setDepth(290);
+          const bg = scene.add.graphics();
+          bg.fillStyle(0x000000, 0.7);
+          bg.fillRoundedRect(-120, -40, 240, 80, 12);
+          this.respawnOverlay.add(bg);
+          const label = scene.add.text(0, -10, 'ELIMINATED', {
+            fontSize: '28px', color: '#ff0000', fontFamily: 'monospace', fontStyle: 'bold',
+            stroke: '#000000', strokeThickness: 3,
+          }).setOrigin(0.5);
+          this.respawnOverlay.add(label);
+          const sub = scene.add.text(0, 20, 'No respawns in Sudden Death', {
+            fontSize: '11px', color: '#ff6666', fontFamily: 'monospace',
+          }).setOrigin(0.5);
+          this.respawnOverlay.add(sub);
+        }
+      } else {
+        const secondsLeft = Math.max(0, Math.ceil((scene.playerRespawnEndTime - Date.now()) / 1000));
 
-      if (!this.respawnOverlay) {
-        // Create overlay on first dead frame
-        this.respawnOverlay = scene.add.container(GAME_WIDTH / 2, GAME_HEIGHT / 2);
-        this.respawnOverlay.setScrollFactor(0).setDepth(290);
+        if (!this.respawnOverlay) {
+          // Create overlay on first dead frame
+          this.respawnOverlay = scene.add.container(GAME_WIDTH / 2, GAME_HEIGHT / 2);
+          this.respawnOverlay.setScrollFactor(0).setDepth(290);
 
-        const bg = scene.add.graphics();
-        bg.fillStyle(0x000000, 0.6);
-        bg.fillRoundedRect(-120, -50, 240, 100, 12);
-        this.respawnOverlay.add(bg);
+          const bg = scene.add.graphics();
+          bg.fillStyle(0x000000, 0.6);
+          bg.fillRoundedRect(-120, -50, 240, 100, 12);
+          this.respawnOverlay.add(bg);
 
-        const label = scene.add.text(0, -22, 'RESPAWNING IN', {
-          fontSize: '14px',
-          color: '#aaaaaa',
-          fontFamily: 'monospace',
-          fontStyle: 'bold',
-        }).setOrigin(0.5);
-        this.respawnOverlay.add(label);
+          const label = scene.add.text(0, -22, 'RESPAWNING IN', {
+            fontSize: '14px',
+            color: '#aaaaaa',
+            fontFamily: 'monospace',
+            fontStyle: 'bold',
+          }).setOrigin(0.5);
+          this.respawnOverlay.add(label);
 
-        this.respawnCountdownText = scene.add.text(0, 14, `${secondsLeft}`, {
-          fontSize: '36px',
-          color: '#ff4444',
-          fontFamily: 'monospace',
-          fontStyle: 'bold',
-        }).setOrigin(0.5);
-        this.respawnOverlay.add(this.respawnCountdownText);
-      } else if (this.respawnCountdownText) {
-        // Update countdown number each frame
-        this.respawnCountdownText.setText(`${secondsLeft}`);
+          this.respawnCountdownText = scene.add.text(0, 14, `${secondsLeft}`, {
+            fontSize: '36px',
+            color: '#ff4444',
+            fontFamily: 'monospace',
+            fontStyle: 'bold',
+          }).setOrigin(0.5);
+          this.respawnOverlay.add(this.respawnCountdownText);
+        } else if (this.respawnCountdownText) {
+          // Update countdown number each frame
+          this.respawnCountdownText.setText(`${secondsLeft}`);
+        }
       }
     } else if (this.respawnOverlay) {
       // Player alive — destroy overlay
@@ -518,6 +540,34 @@ export class HUD {
 
       iconIndex++;
     }
+  }
+
+  showSuddenDeathOverlay(): void {
+    this.isSuddenDeath = true;
+    const scene = this.scene;
+
+    // Persistent red border (depth 295 — above game, below overlay panels)
+    const border = scene.add.graphics();
+    border.lineStyle(6, SUDDEN_DEATH_COLOR, 0.8);
+    border.strokeRect(3, 3, GAME_WIDTH - 6, GAME_HEIGHT - 6);
+    border.setScrollFactor(0).setDepth(295);
+
+    // "SUDDEN DEATH" text below score breakdown
+    scene.add.text(GAME_WIDTH / 2, 110, 'SUDDEN DEATH', {
+      fontSize: '22px',
+      color: '#ff0000',
+      fontFamily: 'monospace',
+      fontStyle: 'bold',
+      stroke: '#000000',
+      strokeThickness: 3,
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(296);
+
+    // "NO RESPAWNS" warning text below Sudden Death title
+    scene.add.text(GAME_WIDTH / 2, 134, 'NO RESPAWNS', {
+      fontSize: '12px',
+      color: '#ff6666',
+      fontFamily: 'monospace',
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(296);
   }
 
   showKill(killerName: string, victimName: string): void {
