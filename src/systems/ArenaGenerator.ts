@@ -73,6 +73,7 @@ export class ArenaGenerator {
       { x: 120, y: ARENA_HEIGHT / 2 + 100 },
       { x: 180, y: ARENA_HEIGHT / 2 - 50 },
       { x: 180, y: ARENA_HEIGHT / 2 + 50 },
+      { x: 80,  y: ARENA_HEIGHT / 2 },        // 5th spawn — fan out from base
     ];
 
     const spawnB = [
@@ -80,6 +81,7 @@ export class ArenaGenerator {
       { x: ARENA_WIDTH - 120, y: ARENA_HEIGHT / 2 + 100 },
       { x: ARENA_WIDTH - 180, y: ARENA_HEIGHT / 2 - 50 },
       { x: ARENA_WIDTH - 180, y: ARENA_HEIGHT / 2 + 50 },
+      { x: ARENA_WIDTH - 80,  y: ARENA_HEIGHT / 2 },     // 5th spawn
     ];
 
     return {
