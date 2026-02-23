@@ -30,6 +30,15 @@ export const Events = {
   HERO_LEVELED_UP:    'hero:leveled_up',   // emitted by Hero.levelUp() when level increases
   // Phase 3 additions:
   MATCH_COMPOSITION_SET: 'match:composition_set', // emitted after team composition is determined
+  // Phase 4 additions:
+  BOSS_KILLED:         'boss:killed',
+  BOSS_PHASE_CHANGED:  'boss:phase_changed',
+  BOSS_SCALED:         'boss:scaled',
+  TOWER_DESTROYED:     'tower:destroyed',
+  TOWER_DISABLED:      'tower:disabled',
+  TOWER_ENABLED:       'tower:enabled',
+  TOWER_DAMAGED:       'tower:damaged',
+  REVIVAL_TOKEN_USED:  'revival:token_used',
 } as const;
 
 /** Derived union type of all valid event keys. */

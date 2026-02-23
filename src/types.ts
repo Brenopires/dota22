@@ -36,6 +36,13 @@ export enum AIState {
 export enum Team {
   A = 'A',
   B = 'B',
+  NEUTRAL = 'NEUTRAL',
+}
+
+export enum BossPhase {
+  NORMAL = 'normal',
+  ENRAGED = 'enraged',
+  DYING = 'dying',
 }
 
 export interface HeroStats {

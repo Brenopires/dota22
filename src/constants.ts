@@ -69,6 +69,38 @@ export const TEAM_BALANCE = {
 export const ARENA_THEMES = ['stone_ruins', 'lava_pit', 'frozen_tundra', 'dark_forest', 'desert_dunes'] as const;
 export const ARENA_LAYOUTS = ['open', 'corridor', 'pillars', 'fortress', 'maze_light'] as const;
 
+// ---------------------------------------------------------------------------
+// Phase 4 — Boss constants
+// ---------------------------------------------------------------------------
+export const BOSS_BASE_HP = 3000;
+export const BOSS_BASE_DAMAGE = 40;
+export const BOSS_BASE_ARMOR = 5;
+export const BOSS_SCALING_PER_MINUTE = 0.15;
+export const BOSS_AGGRO_RADIUS = 250;
+export const BOSS_LEASH_RADIUS = 400;
+export const BOSS_ATTACK_RANGE = 80;
+export const BOSS_ATTACK_INTERVAL = 1.5;
+export const BOSS_ENRAGED_ATTACK_INTERVAL = 1.0;
+export const BOSS_DYING_ATTACK_INTERVAL = 0.7;
+export const BOSS_RADIUS = 35;
+export const BOSS_KILL_BUFF_DAMAGE = 20;
+export const BOSS_KILL_BUFF_DURATION = 60;
+export const BOSS_ENRAGED_THRESHOLD = 0.6;
+export const BOSS_DYING_THRESHOLD = 0.25;
+export const BOSS_MOVE_SPEED = 80;
+
+// ---------------------------------------------------------------------------
+// Phase 4 — Tower constants
+// ---------------------------------------------------------------------------
+export const TOWER_MAX_HP = 4000;
+export const TOWER_ATTACK_DAMAGE = 80;
+export const TOWER_ATTACK_RADIUS = 200;
+export const TOWER_ATTACK_INTERVAL = 1.0;
+export const TOWER_RADIUS = 30;
+export const TOWER_REGEN_RATE = 20;
+export const TOWER_REGEN_DELAY = 5000;
+export const TOWER_DISABLE_DURATION = 15;
+
 export const HERO_ELEMENT_MAP: Record<string, string> = {
   flame_witch: 'fire',
   frost_archer: 'ice',
