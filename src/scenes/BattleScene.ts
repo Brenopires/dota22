@@ -14,6 +14,7 @@ import { VFXManager } from '../systems/VFXManager';
 import { MatchStateMachine } from '../systems/MatchStateMachine';
 import { EventBus, Events } from '../systems/EventBus';
 import { BaseEntity } from '../entities/BaseEntity';
+import { XPSystem } from '../systems/XPSystem';
 
 export class BattleScene extends Phaser.Scene {
   player!: Hero;
@@ -25,6 +26,7 @@ export class BattleScene extends Phaser.Scene {
   aiControllers: AIController[] = [];
   hud!: HUD;
   matchStateMachine!: MatchStateMachine;
+  xpSystem!: XPSystem;
   teamAKills = 0;
   teamBKills = 0;
   playerKills = 0;
@@ -119,6 +121,9 @@ export class BattleScene extends Phaser.Scene {
       this.heroes.push(hero);
       this.teamB.push(hero);
     }
+
+    // XP system — subscribes to HERO_KILLED to award kill XP
+    this.xpSystem = new XPSystem(this.heroes);
 
     // Setup collisions
     this.combatSystem.setupCollisions(this.heroes, this.obstacles);
@@ -440,6 +445,7 @@ export class BattleScene extends Phaser.Scene {
     if (this.matchStateMachine) {
       this.matchStateMachine.destroy();
     }
+    this.xpSystem?.destroy();
     for (const timer of this.respawnTimers.values()) {
       this.time.removeEvent(timer);
     }

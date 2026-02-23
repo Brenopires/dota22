@@ -4,6 +4,7 @@ import { HeroStats, Team, ActiveBuff, BuffType, AbilityDef } from '../types';
 import { HealthBar } from './HealthBar';
 import { BaseEntity } from './BaseEntity';
 import { EventBus, Events } from '../systems/EventBus';
+import { XP_THRESHOLDS } from '../systems/XPSystem';
 
 export class Hero extends BaseEntity {
   readonly entityType = 'hero' as const;
@@ -27,11 +28,21 @@ export class Hero extends BaseEntity {
   abilityCooldowns: number[] = [0, 0, 0, 0];
   autoAttackTimer = 0;
 
+  // XP / leveling — initialized by XPSystem
+  level = 1;
+  currentXP = 0;
+  // Base stats stored at construction time — used for level-up scaling (not current stat)
+  private baseMaxHP: number;
+  private baseDamage: number;
+  private passiveCooldownTimer = 0; // tracks internal cooldown for passive trigger
+
   constructor(scene: Phaser.Scene, x: number, y: number, stats: HeroStats, team: Team, isPlayer: boolean) {
     super(scene, x, y, stats.maxHP, team);
     this.stats = stats;
     this.isPlayer = isPlayer;
     this.currentMana = stats.maxMana;
+    this.baseMaxHP = stats.maxHP;
+    this.baseDamage = stats.damage;
 
     // Glow behind hero
     if (scene.textures.exists('glow_circle')) {
@@ -153,6 +164,11 @@ export class Hero extends BaseEntity {
     // Update auto-attack timer
     if (this.autoAttackTimer > 0) {
       this.autoAttackTimer -= dt;
+    }
+
+    // Update passive cooldown timer (used by passive ability implementations)
+    if (this.passiveCooldownTimer > 0) {
+      this.passiveCooldownTimer = Math.max(0, this.passiveCooldownTimer - dt);
     }
 
     // Update buffs (inherited from BaseEntity)
@@ -425,5 +441,55 @@ export class Hero extends BaseEntity {
 
   distanceTo(other: Hero): number {
     return Phaser.Math.Distance.Between(this.x, this.y, other.x, other.y);
+  }
+
+  gainXP(amount: number): void {
+    if (!this.isAlive) return;
+    this.currentXP += amount;
+    while (this.level < XP_THRESHOLDS.length - 1 && this.currentXP >= XP_THRESHOLDS[this.level]) {
+      this.levelUp();
+    }
+  }
+
+  levelUp(): void {
+    this.level++;
+
+    // Use BASE stats for scaling — prevents exponential runaway
+    const hpBonus = Math.floor(this.baseMaxHP * 0.06);   // +6% base HP
+    const dmgBonus = Math.floor(this.baseDamage * 0.04);  // +4% base damage
+    const armorBonus = 0.5; // +0.5 flat per level (accumulates)
+
+    this.maxHP += hpBonus;
+    this.currentHP = Math.min(this.currentHP + hpBonus, this.maxHP); // partial heal
+    this.stats.damage += dmgBonus;
+    this.stats.armor += armorBonus;
+
+    // Emit level-up event for HUD XP bar (Plan 02-05)
+    EventBus.emit(Events.HERO_LEVELED_UP, { hero: this, level: this.level });
+
+    this.showLevelUpVFX();
+  }
+
+  private showLevelUpVFX(): void {
+    const battleScene = this.scene as any;
+    if (battleScene.vfxManager) {
+      battleScene.vfxManager.spawnBurst(this.x, this.y, 'generic', 16, 0xFFD700);
+    }
+    const text = this.scene.add.text(this.x, this.y - 40, `LEVEL ${this.level}!`, {
+      fontSize: '16px',
+      color: '#FFD700',
+      fontFamily: 'monospace',
+      fontStyle: 'bold',
+      stroke: '#000000',
+      strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(100);
+
+    this.scene.tweens.add({
+      targets: text,
+      y: text.y - 50,
+      alpha: 0,
+      duration: 1500,
+      onComplete: () => text.destroy(),
+    });
   }
 }
