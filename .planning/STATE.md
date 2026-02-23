@@ -107,6 +107,10 @@ Recent decisions affecting current work:
 - [04-03]: BossAISystem is standalone (not AIController subclass) — boss has no abilities/mana/hero target selection
 - [04-03]: getNonHeroTargets() returns boss (always) + enemy tower (team-filtered) — canonical API for CombatSystem boss/tower targeting
 - [04-03]: Buffs not applied to boss/tower from projectile or area effect hits — buff system is hero-only
+- [04-04]: Revival token check placed BEFORE kill counting in onHeroKilled — hero never 'died' from game perspective, no kill counted, no respawn scheduled
+- [04-04]: towerVictoryTeam overrides normal win-by-kills/alive logic in endMatch() — tower destruction is absolute win condition
+- [04-04]: MatchStateMachine.onKill uses else-if for team scoring — prevents Team.NEUTRAL entities from affecting score
+- [04-04]: entityType guard added to BattleScene.onHeroKilled as safety filter for non-hero entities
 - [04-05]: BossPhase import removed from HUD.ts — boss.phase flows through as any from BossEntity, no direct type reference needed
 - [04-05]: Tower indicator positions at GAME_WIDTH/2 +/- 100 flanking kill score text at center
 
@@ -124,5 +128,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 04-05-PLAN.md — BossHealthBar UI + tower status indicators in HUD
+Stopped at: Completed 04-04-PLAN.md — Boss kill rewards, revival token, tower destruction win condition
 Resume file: None
