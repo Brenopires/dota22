@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../constants';
 import { IBattleScene } from '../types';
 import { AbilityBar } from './AbilityBar';
+import { XP_THRESHOLDS } from '../systems/XPSystem';
 
 interface KillFeedEntry {
   text: Phaser.GameObjects.Text;
@@ -18,6 +19,9 @@ export class HUD {
   private abilityBar: AbilityBar;
   private matchOverText: Phaser.GameObjects.Text | null = null;
   private hpGraphics: Phaser.GameObjects.Graphics;
+  private xpGraphics: Phaser.GameObjects.Graphics;
+  private levelText: Phaser.GameObjects.Text;
+  private xpBarWidth = 180;
   private killFeedEntries: KillFeedEntry[] = [];
   private respawnOverlay: Phaser.GameObjects.Container | null = null;
   private respawnCountdownText: Phaser.GameObjects.Text | null = null;
@@ -57,10 +61,10 @@ export class HUD {
       fontStyle: 'bold',
     }).setScrollFactor(0).setDepth(200);
 
-    // Panel background behind HP/mana bars
+    // Panel background behind HP/mana/XP bars
     const panelBg = scene.add.graphics();
     panelBg.fillStyle(0x000000, 0.4);
-    panelBg.fillRoundedRect(10, GAME_HEIGHT - 100, 200, 62, 8);
+    panelBg.fillRoundedRect(10, GAME_HEIGHT - 100, 200, 78, 8);
     panelBg.setScrollFactor(0).setDepth(199);
 
     // HP/Mana graphics (drawn each frame)
@@ -79,6 +83,18 @@ export class HUD {
     this.manaText = scene.add.text(20 + barWidth / 2, manaY, '', {
       fontSize: '9px', color: '#ffffff', fontFamily: 'monospace',
     }).setOrigin(0.5).setScrollFactor(0).setDepth(202);
+
+    // XP bar graphics
+    this.xpGraphics = scene.add.graphics();
+    this.xpGraphics.setScrollFactor(0).setDepth(201);
+
+    // Level text (gold, beside XP bar)
+    this.levelText = scene.add.text(20, GAME_HEIGHT - 40, 'LV 1', {
+      fontSize: '10px',
+      color: '#FFD700',
+      fontFamily: 'monospace',
+      fontStyle: 'bold',
+    }).setScrollFactor(0).setDepth(202);
 
     // Ability bar
     this.abilityBar = new AbilityBar(scene, scene.player);
@@ -148,6 +164,30 @@ export class HUD {
       }
 
       this.manaText.setText(`${Math.ceil(player.currentMana)} / ${player.stats.maxMana}`);
+
+      // XP bar
+      const xpThresholds = XP_THRESHOLDS;
+      const xpPrev = xpThresholds[player.level - 1] ?? 0;
+      const xpNext = xpThresholds[player.level] ?? xpThresholds[xpThresholds.length - 1];
+      const xpProgress = xpNext > xpPrev
+        ? Math.min(1, (player.currentXP - xpPrev) / (xpNext - xpPrev))
+        : 1; // at max level, show full bar
+
+      const xg = this.xpGraphics;
+      xg.clear();
+
+      // XP bar background
+      xg.fillStyle(0x111111, 1);
+      xg.fillRoundedRect(20, GAME_HEIGHT - 36, this.xpBarWidth, 6, 2);
+
+      // XP fill
+      const xpFillWidth = Math.max(0, this.xpBarWidth * xpProgress);
+      if (xpFillWidth > 0) {
+        xg.fillStyle(0xFFD700, 1);
+        xg.fillRoundedRect(20, GAME_HEIGHT - 36, xpFillWidth, 6, 2);
+      }
+
+      this.levelText.setText(`LV ${player.level}`);
     }
 
     // Ability bar
