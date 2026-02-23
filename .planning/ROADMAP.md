@@ -15,7 +15,7 @@ Rift Clash evolves from a working arena brawler into a competitive asymmetric he
 - [x] **Phase 3: Asymmetric Teams** - Random team sizes, MMR-adaptive scaling, AI target distribution
 - [x] **Phase 4: Boss & Towers** - BossEntity (Tier 1), multi-phase boss AI, tower entities with destruction win
 - [x] **Phase 5: Battle Traits & Gems** - TraitRegistry, per-match trait assignment, random Gem power-ups
-- [ ] **Phase 6: Neutral Camps & Arena** - 4 camp types, 60s respawn, buff grants, arena zone layout
+- [x] **Phase 6: Neutral Camps & Arena** - 4 camp types, 60s respawn, buff grants, arena zone layout
 - [ ] **Phase 7: Scoring & Sudden Death** - Full scoring system, Boss Tier 2/3, Sudden Death at 5:00 and via boss Tier 3
 - [ ] **Phase 8: Draft & Ranked** - Pick-from-3 draft UI, rank tier ladder, ±40 MMR shifts
 
@@ -169,11 +169,11 @@ Plans:
 **Plans:** 5 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — Type foundation: CampType enum, BuffType.HASTE/COOLDOWN_REDUCTION, camp constants, EventBus events
-- [ ] 06-02-PLAN.md — NeutralMob entity (extends BaseEntity, die() emits CAMP_CLEARED, simple visuals, scaling, respawn method)
-- [ ] 06-03-PLAN.md — Hero HASTE/CDR buff mechanics + MatchStateMachine camp scoring
-- [ ] 06-04-PLAN.md — NeutralCampSystem (spawn, AI, respawn, buff grant, kill feed) + BattleScene integration
-- [ ] 06-05-PLAN.md — HUD camp buff icons + Phase 6 verification + STATE/ROADMAP update
+- [x] 06-01-PLAN.md — Type foundation: CampType enum, BuffType.HASTE/COOLDOWN_REDUCTION, camp constants, EventBus events
+- [x] 06-02-PLAN.md — NeutralMob entity (extends BaseEntity, die() emits CAMP_CLEARED, simple visuals, scaling, respawn method)
+- [x] 06-03-PLAN.md — Hero HASTE/CDR buff mechanics + MatchStateMachine camp scoring
+- [x] 06-04-PLAN.md — NeutralCampSystem (spawn, AI, respawn, buff grant, kill feed) + BattleScene integration
+- [x] 06-05-PLAN.md — HUD camp buff icons + Phase 6 verification + STATE/ROADMAP update
 
 ---
 
@@ -239,6 +239,6 @@ Plans:
 | 3. Asymmetric Teams | 5/5 | Complete | 2026-02-22 |
 | 4. Boss & Towers | 6/6 | Complete | 2026-02-23 |
 | 5. Battle Traits & Gems | 5/5 | Complete | 2026-02-23 |
-| 6. Neutral Camps & Arena | 0/5 | Planned | - |
+| 6. Neutral Camps & Arena | 5/5 | Complete | 2026-02-23 |
 | 7. Scoring & Sudden Death | 0/6 | Not started | - |
 | 8. Draft & Ranked | 0/4 | Not started | - |

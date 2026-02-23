@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-22)
 
 **Core value:** Asymmetric chaos that feels like a skill test — being thrown into a 1v3 as the solo player at high MMR and winning through outplay, not handicaps.
-**Current focus:** Phase 6 — Neutral Camps & Arena
+**Current focus:** Phase 7 — Scoring & Sudden Death
 
 ## Current Position
 
-Phase: 6 of 8 (Neutral Camps & Arena) — IN PROGRESS
-Plan: 5 of 5 — plans 01, 02, 03, 04 done
-Status: Phase 6 plan 04 complete — NeutralCampSystem orchestrator + BattleScene integration
-Last activity: 2026-02-23 — Completed 06-04: NeutralCampSystem + BattleScene integration
+Phase: 6 of 8 (Neutral Camps & Arena) — COMPLETE
+Plan: 5 of 5 — all done
+Status: Phase 6 complete — HUD camp buff icons + all 4 success criteria verified
+Last activity: 2026-02-23 — Completed 06-05: HUD camp buff icons + Phase 6 verification
 
-Progress: [███████████████████] 76%
+Progress: [████████████████████] 80%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 29
+- Total plans completed: 30
 - Average duration: 2 min
-- Total execution time: 61 min
+- Total execution time: 63 min
 
 **By Phase:**
 
@@ -30,12 +30,12 @@ Progress: [███████████████████] 76%
 | 01-foundation | 5/5 | 12 min | 2 min |
 | 02-hero-identity | 6/6 | 13 min | 2 min |
 | 03-asymmetric-teams | 5/5 | 5 min | 1 min |
-| 04-boss-towers | 5/6 | 16 min | 3 min |
+| 04-boss-towers | 6/6 | 16 min | 3 min |
 | 05-battle-traits | 5/5 | 9 min | 2 min |
-| 06-neutral-camps | 4/5 | 7 min | 2 min |
+| 06-neutral-camps | 5/5 | 9 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 2 min, 3 min, 2 min, 2 min, 2 min
+- Last 5 plans: 2 min, 2 min, 2 min, 2 min, 2 min
 - Trend: fast
 
 *Updated after each plan completion*
@@ -136,6 +136,7 @@ Recent decisions affecting current work:
 - [06-04]: NeutralCampSystem uses CAMP_POSITIONS for leash origin — same coordinates used to spawn mobs, no need to expose homePosition from NeutralMob
 - [06-04]: bossMinute++ moved outside boss alive check — camp mobs scale by match elapsed minutes, not boss lifetime
 - [06-04]: Camp mob physics colliders registered at create() time for initial 4 mobs — Phaser arcade body persists across respawn() calls
+- [06-05]: HUD buff icons destroy+recreate each frame (max 4 text+graphics objects) — simpler than per-icon show/hide state tracking; negligible cost matches HP/mana bar redraw pattern
 
 ### Pending Todos
 
@@ -151,5 +152,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 06-04-PLAN.md — NeutralCampSystem + BattleScene integration
+Stopped at: Completed 06-05-PLAN.md — HUD camp buff icons + Phase 6 verification complete
 Resume file: None
