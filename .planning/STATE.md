@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 ## Current Position
 
 Phase: 2 of 8 (Hero Identity) — In Progress
-Plan: 1 of 5 — 02-01 done
-Status: Active — 02-01 complete, ready for 02-02
-Last activity: 2026-02-22 — Completed 02-01 (type/event infrastructure); AbilityDef widened, PassiveDef added, three combat events wired
+Plan: 2 of 5 — 02-02 done
+Status: Active — 02-02 complete, ready for 02-03/02-04 (wave 2 parallel plans)
+Last activity: 2026-02-23 — Completed 02-02 (R-slot ultimates); 13 ultimates defined, abilityCooldowns expanded to 4 slots, R key wired, AI ultimate logic added
 
-Progress: [██░░░░░░░░] 15%
+Progress: [███░░░░░░░] 20%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
+- Total plans completed: 7
 - Average duration: 2 min
-- Total execution time: 13 min
+- Total execution time: 15 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 5/5 | 12 min | 2 min |
-| 02-hero-identity | 1/5 | 1 min | 1 min |
+| 02-hero-identity | 2/5 | 3 min | 1.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 2 min, 3 min, 2 min, 1 min, 1 min
+- Last 5 plans: 3 min, 2 min, 1 min, 1 min, 2 min
 - Trend: fast
 
 *Updated after each plan completion*
@@ -66,6 +66,8 @@ Recent decisions affecting current work:
 - [01-05]: Math.floor() applied to timeRemaining before formatTime — avoids edge case at second boundary
 - [02-01]: HeroStats.passive is required (not optional) so TypeScript flags all 13 heroData.ts entries — compiler guides Plan 02-04 executor
 - [02-01]: HERO_HIT emitted unconditionally after auto-attack connects; DAMAGE_TAKEN gated on finalDamage > 0 — zero-damage hits must not trigger passives
+- [02-02]: abilityOrder in executeUseAbility updated to [3, 2, 0, 1] — R ultimate is highest AI priority when available
+- [02-02]: shouldUseUltimate() checked before abilityPriority random gate — ensures ultimates fire at 30% independent of personality profile
 
 ### Pending Todos
 
@@ -80,6 +82,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-22
-Stopped at: Completed 02-01-PLAN.md — type/event infrastructure for Phase 2 complete
+Last session: 2026-02-23
+Stopped at: Completed 02-02-PLAN.md — R-slot ultimates, abilityCooldowns expanded, R key wired, AI ultimate logic
 Resume file: None
