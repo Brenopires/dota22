@@ -50,7 +50,12 @@ export class MatchStateMachine {
     this.matchTimeRemaining--;
     EventBus.emit(Events.MATCH_TIMER_TICK, { remaining: this.matchTimeRemaining });
     if (this.matchTimeRemaining <= 0) {
-      this.transition(MatchPhase.ENDED);
+      // FLOW-05: tie at 5:00 -> Sudden Death; otherwise end match
+      if (this.score.teamA === this.score.teamB) {
+        this.triggerSuddenDeath('timer_tie');
+      } else {
+        this.transition(MatchPhase.ENDED);
+      }
     }
   }
 
