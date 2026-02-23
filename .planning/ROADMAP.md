@@ -217,13 +217,13 @@ Plans:
 3. The player's current rank tier (Bronze, Silver, Gold, Platinum, Apex) is visible in the main menu and results screen based on their MMR.
 4. The draft completes and transitions to BattleScene in under 30 seconds, passing the correct hero and trait selection.
 
-**Plans:** TBD
+**Plans:** 4 plans
 
 Plans:
-- [ ] 08-01: Pick-from-3 draft UI (3 random hero cards; one-pick-lock; countdown to auto-pick)
-- [ ] 08-02: Rank tier system (Bronze / Silver / Gold / Platinum / Apex MMR thresholds)
-- [ ] 08-03: ±40 MMR shift enforcement (post-match calculation; results screen MMR delta display)
-- [ ] 08-04: Rank display (menu + results screen; tier badge with current MMR)
+- [ ] 08-01-PLAN.md — Rank tier fix (5 tiers) + flat ±40 MMR + getRank utility extraction
+- [ ] 08-02-PLAN.md — MatchOrchestrator partial/finalize split for draft flow
+- [ ] 08-03-PLAN.md — DraftScene pick-from-3 interactive refactor with countdown
+- [ ] 08-04-PLAN.md — Phase 8 verification + STATE/ROADMAP completion
 
 ---
 
