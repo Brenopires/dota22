@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 ## Current Position
 
 Phase: 7 of 8 (Scoring & Sudden Death) — IN PROGRESS
-Plan: 3 of 5 — complete
-Status: Phase 7 plan 03 complete — live four-source scoreboard + tower threshold visual cue in HUD
-Last activity: 2026-02-23 — Completed 07-03: HUD scoreboard with K/B/T/C breakdown and threshold cue
+Plan: 4 of 5 — complete
+Status: Phase 7 plan 04 complete — Sudden Death system: 5:00 tie trigger, respawn cancellation, team wipe detection, HUD overlay
+Last activity: 2026-02-23 — Completed 07-04: Sudden Death system across MatchStateMachine, BattleScene, HUD
 
-Progress: [████████████████████] 82%
+Progress: [████████████████████] 84%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 31
+- Total plans completed: 32
 - Average duration: 2 min
-- Total execution time: 65 min
+- Total execution time: 67 min
 
 **By Phase:**
 
@@ -33,7 +33,7 @@ Progress: [████████████████████] 82%
 | 04-boss-towers | 6/6 | 16 min | 3 min |
 | 05-battle-traits | 5/5 | 9 min | 2 min |
 | 06-neutral-camps | 5/5 | 9 min | 2 min |
-| 07-scoring-sudden-death | 3/5 | 5 min | 2 min |
+| 07-scoring-sudden-death | 4/5 | 7 min | 2 min |
 
 **Recent Trend:**
 - Last 5 plans: 2 min, 2 min, 2 min, 2 min, 2 min
@@ -152,6 +152,12 @@ Recent decisions affecting current work:
 - [07-03]: scoreBreakdownText y-position decided at constructor time via hasTraitIndicator flag — avoids per-frame conditional
 - [07-03]: Breakdown text single-color tint toward player's team — full per-segment coloring would require Phaser rich text plugin
 - [07-03]: Tower threshold cue uses gold accent line + [!2pt] label — visible while tower alive, suppressed after destruction
+- [07-04]: onTick tie check uses this.score.teamA === this.score.teamB — both routes (SD and ENDED) handled in single guard block at timer zero
+- [07-04]: respawnTimers.clear() called on SUDDEN_DEATH entry — in-flight timers cancelled before any new kills can trigger respawn race condition
+- [07-04]: playerRespawnEndTime reset to 0 on SD entry — HUD countdown clears even if player was mid-respawn countdown when SD starts
+- [07-04]: teamAAllDead/teamBAllDead check runs after every SD kill via Array.every() — O(n) with n<=5, no performance concern
+- [07-04]: scheduleBossRespawn callback guards !== SUDDEN_DEATH alongside !== ENDED — boss does not respawn after SD entry
+- [07-04]: isSuddenDeath flag set once via showSuddenDeathOverlay() method call — consistent with HUD polling-first pattern, no EventBus subscription needed
 
 ### Pending Todos
 
@@ -160,12 +166,12 @@ None yet.
 ### Blockers/Concerns
 
 - [Phase 4] Boss Tier 2 roaming (obstacle-aware pathfinding) is highest technical risk — NavMesh vs. waypoint graph decision needed during Phase 4 planning
-- [Phase 7] Sudden Death at exact 5:00:000 boundary requires formal state transition specification — ADDRESSED in plan 04 (timer boundary handled by score tie check in onTick)
+- [Phase 7] Sudden Death at exact 5:00:000 boundary requires formal state transition specification — RESOLVED in plan 04 (timer boundary handled by score tie check in onTick)
 - [General] Scene restart memory leak (tickTimer accumulation) — RESOLVED in 01-03 via MatchStateMachine.destroy() + scene.time.removeEvent()
 - [02-ongoing] heroData.ts TypeScript errors on all 13 heroes (missing passive field) — RESOLVED in Plan 02-04
 
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 07-03-PLAN.md — live HUD scoreboard with K/B/T/C breakdown + tower threshold visual cue
+Stopped at: Completed 07-04-PLAN.md — Sudden Death system: timer tie trigger, respawn cancellation, team wipe detection, HUD overlay
 Resume file: None
