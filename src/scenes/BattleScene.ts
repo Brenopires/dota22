@@ -17,6 +17,9 @@ import { VFXManager } from '../systems/VFXManager';
 import { MatchStateMachine } from '../systems/MatchStateMachine';
 import { EventBus, Events } from '../systems/EventBus';
 import { BaseEntity } from '../entities/BaseEntity';
+import { BossEntity } from '../entities/BossEntity';
+import { TowerEntity } from '../entities/TowerEntity';
+import { BossAISystem } from '../systems/BossAISystem';
 import { XPSystem } from '../systems/XPSystem';
 
 export class BattleScene extends Phaser.Scene {
@@ -58,6 +61,12 @@ export class BattleScene extends Phaser.Scene {
   aiTimer = 0;
   private targetCountMap: Map<string, number> = new Map();
   matchConfig!: MatchConfig;
+  boss: BossEntity | null = null;
+  bossAI: BossAISystem | null = null;
+  towerA: TowerEntity | null = null;
+  towerB: TowerEntity | null = null;
+  private bossScaleTimer: Phaser.Time.TimerEvent | null = null;
+  private bossMinute = 0;
 
   constructor() {
     super({ key: 'BattleScene' });
@@ -76,6 +85,12 @@ export class BattleScene extends Phaser.Scene {
     this.aiTimer = 0;
     this.targetCountMap = new Map();
     this.respawnTimers = new Map();
+    this.boss = null;
+    this.bossAI = null;
+    this.towerA = null;
+    this.towerB = null;
+    this.bossMinute = 0;
+    this.bossScaleTimer = null;
 
     // Use provided match config or generate new one
     this.matchConfig = data?.matchConfig ?? MatchOrchestrator.generateMatch();
@@ -145,6 +160,47 @@ export class BattleScene extends Phaser.Scene {
 
     // Setup collisions
     this.combatSystem.setupCollisions(this.heroes, this.obstacles);
+
+    // --- Boss + Tower spawning ---
+
+    // Spawn boss at arena center
+    const bossX = ARENA_WIDTH / 2;
+    const bossY = ARENA_HEIGHT / 2;
+    this.boss = new BossEntity(this, bossX, bossY);
+    this.bossAI = new BossAISystem(this.boss, this, bossX, bossY);
+
+    // Spawn towers near each team's spawn area
+    const towerAX = 250;
+    const towerAY = ARENA_HEIGHT / 2;
+    const towerBX = ARENA_WIDTH - 250;
+    const towerBY = ARENA_HEIGHT / 2;
+    this.towerA = new TowerEntity(this, towerAX, towerAY, Team.A);
+    this.towerB = new TowerEntity(this, towerBX, towerBY, Team.B);
+
+    // Boss scaling timer (60s interval)
+    this.bossMinute = 0;
+    this.bossScaleTimer = this.time.addEvent({
+      delay: 60000,
+      callback: () => {
+        if (this.boss?.isAlive) {
+          this.bossMinute++;
+          this.boss.scalePower(this.bossMinute);
+        }
+      },
+      loop: true,
+    });
+
+    // Physics colliders for boss + towers
+    this.physics.add.collider(this.boss, this.obstacles);
+    this.physics.add.collider(this.towerA, this.obstacles);
+    this.physics.add.collider(this.towerB, this.obstacles);
+    this.physics.add.collider(this.boss, this.towerA);
+    this.physics.add.collider(this.boss, this.towerB);
+    for (const hero of this.heroes) {
+      this.physics.add.collider(hero, this.boss);
+      this.physics.add.collider(hero, this.towerA);
+      this.physics.add.collider(hero, this.towerB);
+    }
 
     // Setup AI for non-player heroes — enemy AI gets MMR-modified profiles
     for (const hero of this.heroes) {
@@ -294,6 +350,21 @@ export class BattleScene extends Phaser.Scene {
         hero.updateHero(dt);
         hero.currentMana = Math.min(hero.stats.maxMana, hero.currentMana + MANA_REGEN_RATE * dt);
       }
+    }
+
+    // Boss AI update
+    if (this.boss?.isAlive && this.bossAI) {
+      this.bossAI.update(dt, this.heroes);
+    }
+
+    // Tower updates
+    if (this.towerA?.isAlive) {
+      const towerAEnemies = this.heroes.filter(h => h.isAlive && h.team === Team.B);
+      this.towerA.updateTower(dt, towerAEnemies);
+    }
+    if (this.towerB?.isAlive) {
+      const towerBEnemies = this.heroes.filter(h => h.isAlive && h.team === Team.A);
+      this.towerB.updateTower(dt, towerBEnemies);
     }
 
     // AI update
@@ -535,6 +606,35 @@ export class BattleScene extends Phaser.Scene {
     if (this.vfxManager) {
       this.vfxManager.destroy();
     }
+    // Boss + tower cleanup
+    if (this.bossScaleTimer) {
+      this.time.removeEvent(this.bossScaleTimer);
+      this.bossScaleTimer = null;
+    }
+    this.boss = null;
+    this.bossAI = null;
+    this.towerA = null;
+    this.towerB = null;
+    this.bossMinute = 0;
+  }
+
+  /**
+   * Returns non-hero targetable entities (boss + enemy towers) for a given team.
+   * Used by CombatSystem to let heroes auto-attack and hit boss/towers.
+   */
+  getNonHeroTargets(attackerTeam: Team): BaseEntity[] {
+    const targets: BaseEntity[] = [];
+    // Boss is always a valid target (neutral, attackable by all)
+    if (this.boss?.isAlive) {
+      targets.push(this.boss);
+    }
+    // Enemy tower is a valid target (attack the OTHER team's tower)
+    if (attackerTeam === Team.A && this.towerB?.isAlive) {
+      targets.push(this.towerB);
+    } else if (attackerTeam === Team.B && this.towerA?.isAlive) {
+      targets.push(this.towerA);
+    }
+    return targets;
   }
 
   getEnemies(team: Team): Hero[] {
