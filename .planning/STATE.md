@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 ## Current Position
 
 Phase: 5 of 8 (Battle Traits & Gems) — IN PROGRESS
-Plan: 2 of ? — complete
-Status: Plan 05-02 complete — TraitSystem runtime, trait/gem selection in MatchOrchestrator, BattleScene integration
-Last activity: 2026-02-23 — Completed 05-02 (TraitSystem runtime + BattleScene integration)
+Plan: 4 of 5 — complete
+Status: Plan 05-04 complete — Trait and gem indicators added to HUD
+Last activity: 2026-02-23 — Completed 05-04 (HUD trait & gem indicators)
 
-Progress: [████████████████] 71%
+Progress: [██████████████████] 77%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 23
+- Total plans completed: 24
 - Average duration: 2 min
-- Total execution time: 51 min
+- Total execution time: 53 min
 
 **By Phase:**
 
@@ -31,10 +31,10 @@ Progress: [████████████████] 71%
 | 02-hero-identity | 6/6 | 13 min | 2 min |
 | 03-asymmetric-teams | 5/5 | 5 min | 1 min |
 | 04-boss-towers | 5/6 | 16 min | 3 min |
-| 05-battle-traits | 2/? | 5 min | 2 min |
+| 05-battle-traits | 4/5 | 7 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 9 min, 2 min, 2 min, 2 min, 3 min
+- Last 5 plans: 2 min, 2 min, 2 min, 3 min, 2 min
 - Trend: fast
 
 *Updated after each plan completion*
@@ -122,6 +122,8 @@ Recent decisions affecting current work:
 - [05-02]: handleOnDamageTaken uses payload.victim (not payload.entity) matching DAMAGE_TAKEN event shape from Hero.takeDamage()
 - [05-02]: Reflect damage only targets heroes (not bosses/towers) to prevent infinite damage loops
 - [05-02]: sudden_valor tracks elapsed minutes via 300 - timeRemaining for first-kill-per-minute rule
+- [05-04]: Trait indicator at y=68-84 between kill score and boss health bar -- minor visual overlap with boss name text acceptable since boss health bar is conditional
+- [05-04]: Panel background expanded from 78px to 90px to fit gem indicator line at GAME_HEIGHT-25
 
 ### Pending Todos
 
@@ -137,5 +139,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 05-02-PLAN.md (TraitSystem runtime + BattleScene integration)
+Stopped at: Completed 05-04-PLAN.md (HUD trait & gem indicators)
 Resume file: None
