@@ -34,18 +34,18 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Boss System
 
-- [ ] **BOSS-01**: Central boss spawns immediately at match start and scales in power every minute
-- [ ] **BOSS-02**: First boss kill grants team-wide stat buff + 1 revival token (mini Aegis)
+- [x] **BOSS-01**: Central boss spawns immediately at match start and scales in power every minute
+- [x] **BOSS-02**: First boss kill grants team-wide stat buff + 1 revival token (mini Aegis)
 - [ ] **BOSS-03**: Second boss kill grants permanent damage amplification and boss begins roaming the map
 - [ ] **BOSS-04**: Third boss kill triggers Sudden Death mode
-- [ ] **BOSS-05**: Boss has multi-phase AI with escalating attack patterns as it grows stronger
+- [x] **BOSS-05**: Boss has multi-phase AI with escalating attack patterns as it grows stronger
 
 ### Tower System
 
-- [ ] **TOWR-01**: Each team has one Core Tower that deals high damage to nearby enemies
-- [ ] **TOWR-02**: Tower regenerates HP slowly when not under attack
-- [ ] **TOWR-03**: Tower is temporarily disabled when boss is killed
-- [ ] **TOWR-04**: Destroying the enemy Core Tower results in instant match victory
+- [x] **TOWR-01**: Each team has one Core Tower that deals high damage to nearby enemies
+- [x] **TOWR-02**: Tower regenerates HP slowly when not under attack
+- [x] **TOWR-03**: Tower is temporarily disabled when boss is killed
+- [x] **TOWR-04**: Destroying the enemy Core Tower results in instant match victory
 
 ### Neutral Camps
 
@@ -120,15 +120,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ASYM-01 | Phase 3 | Done |
 | ASYM-02 | Phase 3 | Done |
 | ASYM-03 | Phase 3 | Done |
-| BOSS-01 | Phase 4 | Pending |
-| BOSS-02 | Phase 4 | Pending |
+| BOSS-01 | Phase 4 | Done |
+| BOSS-02 | Phase 4 | Done |
 | BOSS-03 | Phase 7 | Pending |
 | BOSS-04 | Phase 7 | Pending |
-| BOSS-05 | Phase 4 | Pending |
-| TOWR-01 | Phase 4 | Pending |
-| TOWR-02 | Phase 4 | Pending |
-| TOWR-03 | Phase 4 | Pending |
-| TOWR-04 | Phase 4 | Pending |
+| BOSS-05 | Phase 4 | Done |
+| TOWR-01 | Phase 4 | Done |
+| TOWR-02 | Phase 4 | Done |
+| TOWR-03 | Phase 4 | Done |
+| TOWR-04 | Phase 4 | Done |
 | CAMP-01 | Phase 6 | Pending |
 | CAMP-02 | Phase 6 | Pending |
 | CAMP-03 | Phase 6 | Pending |

@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-22)
 
 **Core value:** Asymmetric chaos that feels like a skill test — being thrown into a 1v3 as the solo player at high MMR and winning through outplay, not handicaps.
-**Current focus:** Phase 4 — Boss & Towers
+**Current focus:** Phase 5 — Battle Traits & Gems
 
 ## Current Position
 
-Phase: 4 of 8 (Boss & Towers) — IN PROGRESS
-Plan: 5 of 6 — complete
-Status: Plan 04-05 complete — BossHealthBar UI + tower status indicators in HUD
-Last activity: 2026-02-23 — Completed 04-05 (Boss Health Bar & Tower Status UI)
+Phase: 4 of 8 (Boss & Towers) — COMPLETE
+Plan: 6 of 6 — all done
+Status: Phase 4 complete — BossEntity, TowerEntity, BossAISystem, rewards, win condition, UI
+Last activity: 2026-02-23 — Completed Phase 4; verifier passed 5/5
 
 Progress: [██████████████] 65%
 
@@ -128,5 +128,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 04-04-PLAN.md — Boss kill rewards, revival token, tower destruction win condition
+Stopped at: Completed Phase 4 — all 6 plans executed, verifier passed 5/5
 Resume file: None
