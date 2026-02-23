@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 ## Current Position
 
 Phase: 4 of 8 (Boss & Towers) — IN PROGRESS
-Plan: 3 of 6 — complete
-Status: Plan 04-03 complete — BossAISystem + BattleScene integration + CombatSystem boss/tower targeting
-Last activity: 2026-02-23 — Completed 04-03 (Boss AI & Scene Integration)
+Plan: 5 of 6 — complete
+Status: Plan 04-05 complete — BossHealthBar UI + tower status indicators in HUD
+Last activity: 2026-02-23 — Completed 04-05 (Boss Health Bar & Tower Status UI)
 
-Progress: [█████████████] 59%
+Progress: [██████████████] 65%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 19
+- Total plans completed: 21
 - Average duration: 2 min
-- Total execution time: 44 min
+- Total execution time: 46 min
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [█████████████] 59%
 | 01-foundation | 5/5 | 12 min | 2 min |
 | 02-hero-identity | 6/6 | 13 min | 2 min |
 | 03-asymmetric-teams | 5/5 | 5 min | 1 min |
-| 04-boss-towers | 3/6 | 14 min | 5 min |
+| 04-boss-towers | 5/6 | 16 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 1 min, 1 min, 3 min, 2 min, 9 min
-- Trend: moderate
+- Last 5 plans: 3 min, 2 min, 9 min, 2 min, 2 min
+- Trend: fast
 
 *Updated after each plan completion*
 
@@ -107,6 +107,8 @@ Recent decisions affecting current work:
 - [04-03]: BossAISystem is standalone (not AIController subclass) — boss has no abilities/mana/hero target selection
 - [04-03]: getNonHeroTargets() returns boss (always) + enemy tower (team-filtered) — canonical API for CombatSystem boss/tower targeting
 - [04-03]: Buffs not applied to boss/tower from projectile or area effect hits — buff system is hero-only
+- [04-05]: BossPhase import removed from HUD.ts — boss.phase flows through as any from BossEntity, no direct type reference needed
+- [04-05]: Tower indicator positions at GAME_WIDTH/2 +/- 100 flanking kill score text at center
 
 ### Pending Todos
 
@@ -122,5 +124,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 04-03-PLAN.md — BossAISystem + BattleScene boss/tower integration + CombatSystem targeting
+Stopped at: Completed 04-05-PLAN.md — BossHealthBar UI + tower status indicators in HUD
 Resume file: None
