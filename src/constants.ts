@@ -101,6 +101,27 @@ export const TOWER_REGEN_RATE = 20;
 export const TOWER_REGEN_DELAY = 5000;
 export const TOWER_DISABLE_DURATION = 15;
 
+// ---------------------------------------------------------------------------
+// Phase 6 -- Neutral Camp constants
+// ---------------------------------------------------------------------------
+export const CAMP_MOB_HP = 600;
+export const CAMP_MOB_DAMAGE = 25;
+export const CAMP_MOB_ARMOR = 3;
+export const CAMP_MOB_RADIUS = 22;
+export const CAMP_MOB_AGGRO_RADIUS = 150;
+export const CAMP_MOB_LEASH_RADIUS = 200;
+export const CAMP_MOB_ATTACK_RANGE = 60;
+export const CAMP_MOB_ATTACK_INTERVAL = 1.2; // seconds
+export const CAMP_MOB_MOVE_SPEED = 60;
+export const CAMP_MOB_SCALING_PER_MINUTE = 0.10;
+export const CAMP_RESPAWN_DELAY = 60000; // ms -- 60 seconds
+export const CAMP_BUFF_DURATION = 30; // seconds
+export const CAMP_BUFF_DAMAGE_VALUE = 15; // +15 flat damage
+export const CAMP_BUFF_SHIELD_VALUE = 200; // 200 HP shield
+export const CAMP_BUFF_HASTE_VALUE = 0.25; // +25% move speed
+export const CAMP_BUFF_COOLDOWN_VALUE = 0.20; // -20% cooldown reduction
+export const CAMP_SCORE_POINTS = 1; // 1 point per camp clear
+
 export const HERO_ELEMENT_MAP: Record<string, string> = {
   flame_witch: 'fire',
   frost_archer: 'ice',

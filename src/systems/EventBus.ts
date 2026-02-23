@@ -41,6 +41,10 @@ export const Events = {
   REVIVAL_TOKEN_USED:  'revival:token_used',
   // Phase 5 additions:
   TRAIT_APPLIED:       'trait:applied',
+  // Phase 6 additions:
+  CAMP_CLEARED:        'camp:cleared',      // { victim: NeutralMob, killerId, campType }
+  CAMP_BUFF_GRANTED:   'camp:buff_granted', // { campType, team, duration }
+  CAMP_RESPAWNED:      'camp:respawned',    // { campType }
 } as const;
 
 /** Derived union type of all valid event keys. */
