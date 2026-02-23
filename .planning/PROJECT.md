@@ -2,17 +2,26 @@
 
 ## What This Is
 
-A 5-minute asymmetric hero brawler inspired by Dota 2, built as a browser game with Phaser 3 and TypeScript. Players control one hero in fast-paced arena combat with AI-controlled teammates and opponents. Matches feature random team sizes (1v1, 2v3, 1v5, etc.) and random battle modifiers, creating high-variance games that test mechanical skill and decision-making under pressure.
+A 5-minute asymmetric hero brawler built as a browser game with Phaser 3 and TypeScript. Players pick from 3 random heroes, then battle in arena combat with AI-controlled teammates and opponents. Matches feature random team sizes (1v1 to 5v5), random battle trait modifiers, a central boss with tiered kill rewards, destructible towers, neutral buff camps, and a full scoring system with Sudden Death tiebreaker. Ranked progression uses flat +/-40 MMR through Bronze, Silver, Gold, Platinum, and Apex tiers.
 
 ## Core Value
 
 Asymmetric chaos that feels like a skill test — being thrown into a 1v3 as the solo player at high MMR and winning through outplay, not handicaps.
 
+## Current State
+
+**Version:** v1.0 MVP (shipped 2026-02-23)
+**Codebase:** ~9,900 LOC TypeScript, Phaser 3.90.0 + Vite
+**Heroes:** 13 with Q/W/E/R + passive
+**Battle Traits:** 8 (stat, mechanic, rule-change categories)
+**Gems:** 8 random power-ups
+**Neutral Camps:** 4 types (Damage, Shield, Haste, Cooldown)
+
+All 31 v1 requirements shipped. No critical tech debt.
+
 ## Requirements
 
 ### Validated
-
-<!-- Shipped and confirmed valuable. Inferred from existing codebase. -->
 
 - ✓ Hero entity system with HP, mana, stats, buffs, and visual components — existing
 - ✓ 3 abilities per hero with cooldowns and mana costs — existing
@@ -20,42 +29,31 @@ Asymmetric chaos that feels like a skill test — being thrown into a 1v3 as the
 - ✓ AI controller with finite state machine (IDLE/CHASE/ATTACK/RETREAT/USE_ABILITY) — existing
 - ✓ AI personality profiles for behavior variation — existing
 - ✓ Procedural texture generation for heroes — existing
-- ✓ Draft scene with hero selection — existing
-- ✓ Match flow: Menu → Draft → Battle → Results — existing
-- ✓ MMR/ELO ranking system with persistent storage — existing
+- ✓ Match flow: Menu -> Draft -> Battle -> Results — existing
 - ✓ VFX system with particles and camera effects — existing
 - ✓ Arena generation with obstacles — existing
 - ✓ HUD with timer, kill feed, ability bar — existing
+- ✓ 5-minute hard match cap with scoring-based victory condition — v1.0
+- ✓ Heroes respawn after death with max 10-second timer — v1.0
+- ✓ Forward-only state machine: PRE_MATCH -> ACTIVE -> SUDDEN_DEATH -> ENDED — v1.0
+- ✓ Asymmetric team sizes with random assignment — v1.0
+- ✓ MMR-situational adaptive scaling — v1.0
+- ✓ AI target distribution preventing focus-fire — v1.0
+- ✓ 13 heroes with Q/W/E/R + passive, XP leveling — v1.0
+- ✓ Boss system: 3 tiers, revival token, damage amp, roaming, Sudden Death trigger — v1.0
+- ✓ Tower system: damage, regen, boss-disable, destruction win — v1.0
+- ✓ 4 neutral buff camps with 60s respawn and team buffs — v1.0
+- ✓ 8 Battle Traits + 8 Gems with incompatibility blacklists — v1.0
+- ✓ Four-source scoring: kills (1pt), boss (3pt), tower threshold (2pt), camps (1pt) — v1.0
+- ✓ Sudden Death at 5:00 tie or boss Tier 3 — v1.0
+- ✓ Pick-from-3 draft with 25s countdown — v1.0
+- ✓ 5-tier ranked system (Bronze/Silver/Gold/Platinum/Apex) with +/-40 MMR — v1.0
 
 ### Active
 
-<!-- Current scope. Building toward these. -->
-
-- [ ] 5-minute hard match cap with scoring-based victory condition
-- [ ] Asymmetric team sizes (1v1, 2v1, 3v2, 4v1, 5v5, any combo) with random assignment
-- [ ] MMR-situational adaptive scaling (high MMR solo gets less help, low MMR gets more)
-- [ ] Boss system (Roshan-inspired) — spawns immediately, scales per minute, drops revival token + stat buff
-- [ ] Second boss kill grants damage amplification + boss starts roaming
-- [ ] Third boss kill triggers Sudden Death mode
-- [ ] Core Tower per team — high damage, slow regen, disabled by boss kill
-- [ ] Tower destruction = instant win condition
-- [ ] 4 neutral buff camps (Damage, Shield, Haste, Cooldown) spawning every 60s
-- [ ] Scoring system: kills (1pt), boss kill (3pt), tower damage threshold (2pt), neutral control (1pt)
-- [ ] Tie at 5:00 = Sudden Death (no respawns)
-- [ ] Pick-from-3 hero draft (3 random heroes, choose 1)
-- [ ] Battle Traits — random modifier per match (double stun, lifesteal→shield, spell burn, blink reset on kill, etc.)
-- [ ] XP-only progression (no gold) — combat and objectives grant XP for leveling
-- [ ] Random Gem system — single random power-up item per match
-- [ ] 6-10 heroes with distinct playstyles (3 basic skills + 1 ultimate + 1 passive)
-- [ ] Ultimate ability (4th skill) per hero
-- [ ] Passive ability per hero
-- [ ] Respawn timer max 10 seconds
-- [ ] Ranked system with tiers: Bronze, Silver, Gold, Platinum, Apex
-- [ ] MMR shifts of ±40 per match for fast climbing
+(None — define in next milestone via `/gsd:new-milestone`)
 
 ### Out of Scope
-
-<!-- Explicit boundaries. Includes reasoning to prevent re-adding. -->
 
 - Online multiplayer — AI-only for v1, multiplayer is a future milestone
 - Creep/minion waves — no passive farming, contradicts core philosophy
@@ -65,17 +63,6 @@ Asymmetric chaos that feels like a skill test — being thrown into a 1v3 as the
 - Surrender votes — 5-minute matches don't need them
 - Mobile app — browser-first
 - Video/voice communication — no multiplayer means no comms needed
-
-## Context
-
-The game is being evolved from an existing Dota 2-inspired codebase built with Phaser 3 (v3.90.0) and TypeScript. The current codebase has working hero combat, AI controllers, a draft system, procedural textures, VFX, and an MMR system. The existing architecture uses a scene-based game loop with stateful system managers, direct method calls (no event bus), and localStorage for persistence.
-
-Key systems that need significant rework:
-- **Match flow:** Currently ends on player death (instant defeat). Needs respawn system + 5-minute timer + scoring.
-- **Team composition:** Currently generates teams but without asymmetric sizing or balancing.
-- **Map:** Currently an arena with obstacles. Needs boss area, tower positions, neutral camps, vision points.
-- **Hero design:** Currently has heroes with 3 abilities. Needs ultimates, passives, and battle traits added.
-- **Draft:** Currently shows hero cards. Needs pick-from-3-random mechanic.
 
 ## Constraints
 
@@ -89,12 +76,16 @@ Key systems that need significant rework:
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Evolve existing codebase | Significant working systems already built (combat, AI, VFX, draft) | — Pending |
-| AI-only for v1 | Reduces scope dramatically, lets us focus on core gameplay feel | — Pending |
-| Asymmetry as skill test, not balanced mode | At high MMR, 1v3 should be hard but possible through outplay | — Pending |
-| MMR-situational scaling | High MMR players get less help in asymmetric matches, low MMR get more | — Pending |
-| Pick-from-3 draft | Adds variance without full roster overwhelm | — Pending |
-| No gold/items, XP + random gem only | Eliminates farming, keeps focus on combat and objectives | — Pending |
+| Evolve existing codebase | Significant working systems already built (combat, AI, VFX, draft) | ✓ Good — 9,900 LOC on solid foundation |
+| AI-only for v1 | Reduces scope dramatically, lets us focus on core gameplay feel | ✓ Good — shipped in 3 days |
+| Asymmetry as skill test, not balanced mode | At high MMR, 1v3 should be hard but possible through outplay | ✓ Good — MMR scaling validated |
+| MMR-situational scaling | High MMR players get less help in asymmetric matches | ✓ Good — TEAM_BALANCE.MMR_SCALE_REDUCTION=0.7 |
+| Pick-from-3 draft | Adds variance without full roster overwhelm | ✓ Good — 25s timer, auto-pick |
+| No gold/items, XP + random gem only | Eliminates farming, keeps focus on combat and objectives | ✓ Good — no economy exploits |
+| EventBus singleton (Phaser EventEmitter) | Already bundled, survives scene restarts | ✓ Good — zero new deps |
+| Forward-only state machine | Prevents invalid transitions, simplifies reasoning | ✓ Good — no race conditions at 5:00 |
+| Waypoint roaming (not NavMesh) for boss | Simpler, Phaser Arcade handles collision sliding | ✓ Good — 8 waypoints sufficient |
+| Flat +/-40 MMR (not ELO) | Fast climbing for 5-minute matches | ✓ Good — simple, predictable |
 
 ---
-*Last updated: 2026-02-22 after initialization*
+*Last updated: 2026-02-23 after v1.0 milestone*
