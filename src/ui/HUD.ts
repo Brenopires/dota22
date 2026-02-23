@@ -35,6 +35,8 @@ export class HUD {
   private towerBText: Phaser.GameObjects.Text;
   private traitText: Phaser.GameObjects.Text | null = null;
   private gemText: Phaser.GameObjects.Text | null = null;
+  private buffIconTexts: Phaser.GameObjects.Text[] = [];
+  private buffIconBgs: Phaser.GameObjects.Graphics[] = [];
 
   constructor(scene: IBattleScene & Phaser.Scene) {
     this.scene = scene;
@@ -267,6 +269,9 @@ export class HUD {
       this.levelText.setText(`LV ${player.level}`);
     }
 
+    // Camp buff icons -- show active camp buffs on player
+    this.updateCampBuffIcons();
+
     // Ability bar
     this.abilityBar.update();
 
@@ -400,6 +405,64 @@ export class HUD {
       // Tower destroyed
       label.setText(`${baseName} [X]`);
       label.setColor('#444444');
+    }
+  }
+
+  private updateCampBuffIcons(): void {
+    const player = this.scene.player;
+    if (!player) return;
+
+    // Destroy previous frame's buff icons
+    for (const text of this.buffIconTexts) text.destroy();
+    for (const bg of this.buffIconBgs) bg.destroy();
+    this.buffIconTexts = [];
+    this.buffIconBgs = [];
+
+    // Camp buff config: sourceId -> display info
+    const campBuffConfig: { sourceId: string; label: string; color: number }[] = [
+      { sourceId: 'camp_damage',   label: 'DMG', color: 0xFF4444 },
+      { sourceId: 'camp_shield',   label: 'SHD', color: 0xCCCCCC },
+      { sourceId: 'camp_haste',    label: 'HST', color: 0x00FFFF },
+      { sourceId: 'camp_cooldown', label: 'CDR', color: 0xAA44FF },
+    ];
+
+    let iconIndex = 0;
+    const iconWidth = 44;
+    const iconHeight = 18;
+    const iconY = GAME_HEIGHT - 115;
+    const iconStartX = 20;
+    const iconGap = 4;
+
+    for (const config of campBuffConfig) {
+      // Find active buff with this sourceId
+      const activeBuff = player.buffs.find(
+        b => b.sourceId === config.sourceId && b.remaining > 0
+      );
+      if (!activeBuff) continue;
+
+      const x = iconStartX + iconIndex * (iconWidth + iconGap);
+      const seconds = Math.ceil(activeBuff.remaining);
+
+      // Background rectangle
+      const bg = this.scene.add.graphics();
+      bg.fillStyle(config.color, 0.2);
+      bg.fillRoundedRect(x, iconY, iconWidth, iconHeight, 3);
+      bg.lineStyle(1, config.color, 0.5);
+      bg.strokeRoundedRect(x, iconY, iconWidth, iconHeight, 3);
+      bg.setScrollFactor(0).setDepth(201);
+      this.buffIconBgs.push(bg);
+
+      // Label + timer text
+      const colorStr = '#' + Phaser.Display.Color.IntegerToColor(config.color).color.toString(16).padStart(6, '0');
+      const text = this.scene.add.text(x + iconWidth / 2, iconY + iconHeight / 2, `${config.label} ${seconds}s`, {
+        fontSize: '9px',
+        color: colorStr,
+        fontFamily: 'monospace',
+        fontStyle: 'bold',
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(202);
+      this.buffIconTexts.push(text);
+
+      iconIndex++;
     }
   }
 
