@@ -38,9 +38,22 @@ export class MatchStateMachine {
 
   private onKill({ victim, killerId }: { victim: BaseEntity; killerId?: string }): void {
     if (this.phase === MatchPhase.ENDED) return;
+    // Only count hero kills for score (boss/tower have their own events)
+    if (victim.entityType !== 'hero') return;
     if (victim.team === Team.A) this.score.teamB++;
-    else this.score.teamA++;
+    else if (victim.team === Team.B) this.score.teamA++;
     EventBus.emit(Events.SCORE_UPDATED, { ...this.score });
+  }
+
+  /**
+   * End the match immediately due to tower destruction.
+   * Uses existing transition() guard to prevent backward transitions.
+   * The transition emits MATCH_STATE_CHANGE with phase: ENDED, which
+   * triggers BattleScene.onMatchStateChange -> endMatch().
+   */
+  endByTowerDestruction(destroyedTowerTeam: Team): void {
+    if (this.phase === MatchPhase.ENDED) return;
+    this.transition(MatchPhase.ENDED);
   }
 
   transition(next: MatchPhase): void {

@@ -68,6 +68,7 @@ export class BattleScene extends Phaser.Scene {
   private bossScaleTimer: Phaser.Time.TimerEvent | null = null;
   private bossMinute = 0;
   private revivalTokenTeam: Team | null = null;
+  private towerVictoryTeam: Team | null = null;
 
   constructor() {
     super({ key: 'BattleScene' });
@@ -93,6 +94,7 @@ export class BattleScene extends Phaser.Scene {
     this.bossMinute = 0;
     this.bossScaleTimer = null;
     this.revivalTokenTeam = null;
+    this.towerVictoryTeam = null;
 
     // Use provided match config or generate new one
     this.matchConfig = data?.matchConfig ?? MatchOrchestrator.generateMatch();
@@ -257,6 +259,9 @@ export class BattleScene extends Phaser.Scene {
 
     // Subscribe to boss kills for rewards (buff, revival token, XP, tower disable)
     EventBus.on(Events.BOSS_KILLED, this.onBossKilled, this);
+
+    // Subscribe to tower destruction for win condition
+    EventBus.on(Events.TOWER_DESTROYED, this.onTowerDestroyed, this);
 
     // Emit composition event and show the banner
     EventBus.emit(Events.MATCH_COMPOSITION_SET, { teamSizeA, teamSizeB, scalingMultiplier });
@@ -499,6 +504,47 @@ export class BattleScene extends Phaser.Scene {
     this.showBossKillBanner(team);
   }
 
+  private onTowerDestroyed({ tower, destroyedTeam, killerId }: { tower: BaseEntity; destroyedTeam: Team; killerId?: string }): void {
+    // Determine winning team: the team that destroyed the enemy tower
+    const winningTeam = destroyedTeam === Team.A ? Team.B : Team.A;
+
+    // Show tower destruction banner (screen-space overlay)
+    const { width: W, height: H } = this.cameras.main;
+    const container = this.add.container(W / 2, H / 2 - 40);
+    container.setScrollFactor(0).setDepth(300);
+
+    const bg = this.add.graphics();
+    bg.fillStyle(0x000000, 0.8);
+    bg.fillRoundedRect(-200, -50, 400, 100, 14);
+    bg.lineStyle(2, 0xff0000, 0.6);
+    bg.strokeRoundedRect(-200, -50, 400, 100, 14);
+    container.add(bg);
+
+    const title = this.add.text(0, -24, 'TOWER DESTROYED!', {
+      fontSize: '28px',
+      color: '#ff0000',
+      fontFamily: 'monospace',
+      fontStyle: 'bold',
+      stroke: '#000000',
+      strokeThickness: 3,
+    }).setOrigin(0.5);
+    container.add(title);
+
+    const winText = this.add.text(0, 14, `Team ${winningTeam} wins by tower destruction!`, {
+      fontSize: '14px',
+      color: '#ffffff',
+      fontFamily: 'monospace',
+      fontStyle: 'bold',
+    }).setOrigin(0.5);
+    container.add(winText);
+
+    // Set tower victory team for endMatch() override
+    this.towerVictoryTeam = winningTeam;
+
+    // End the match via MatchStateMachine
+    this.matchStateMachine.endByTowerDestruction(destroyedTeam);
+  }
+
   private showBossKillBanner(team: Team): void {
     const { width: W, height: H } = this.cameras.main;
     const teamColor = team === Team.A ? '#00aaff' : '#ff4444';
@@ -679,7 +725,11 @@ export class BattleScene extends Phaser.Scene {
     let won = false;
     let draw = false;
 
-    if (teamAAlive > teamBAlive) {
+    // Tower destruction win condition overrides normal logic
+    if (this.towerVictoryTeam !== null) {
+      won = (this.towerVictoryTeam === this.player.team);
+      draw = false;
+    } else if (teamAAlive > teamBAlive) {
       won = this.player.team === Team.A;
     } else if (teamBAlive > teamAAlive) {
       won = this.player.team === Team.B;
@@ -729,7 +779,9 @@ export class BattleScene extends Phaser.Scene {
     EventBus.off(Events.HERO_KILLED, this.onHeroKilled, this);
     EventBus.off(Events.MATCH_STATE_CHANGE, this.onMatchStateChange, this);
     EventBus.off(Events.BOSS_KILLED, this.onBossKilled, this);
+    EventBus.off(Events.TOWER_DESTROYED, this.onTowerDestroyed, this);
     this.revivalTokenTeam = null;
+    this.towerVictoryTeam = null;
     if (this.matchStateMachine) {
       this.matchStateMachine.destroy();
     }
