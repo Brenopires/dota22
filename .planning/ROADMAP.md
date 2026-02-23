@@ -12,7 +12,7 @@ Rift Clash evolves from a working arena brawler into a competitive asymmetric he
 
 - [x] **Phase 1: Foundation** - EventBus, BaseEntity, MatchStateMachine, respawn, and 5-minute match timer
 - [x] **Phase 2: Hero Identity** - Hero roster (6-10), ultimates, passives, XP leveling, combat event hooks
-- [ ] **Phase 3: Asymmetric Teams** - Random team sizes, MMR-adaptive scaling, AI target distribution
+- [x] **Phase 3: Asymmetric Teams** - Random team sizes, MMR-adaptive scaling, AI target distribution
 - [ ] **Phase 4: Boss & Towers** - BossEntity (Tier 1), multi-phase boss AI, tower entities with destruction win
 - [ ] **Phase 5: Battle Traits & Gems** - TraitRegistry, per-match trait assignment, random Gem power-ups
 - [ ] **Phase 6: Neutral Camps & Arena** - 4 camp types, 60s respawn, buff grants, arena zone layout
@@ -92,11 +92,11 @@ Plans:
 **Plans:** 5 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — TeamManager asymmetric generation (1–5 per side); MatchOrchestrator MatchConfig type; ArenaGenerator 5 spawn points
-- [ ] 03-02-PLAN.md — TeamBalancer (TEAM_BALANCE constants; computeMultiplier; applyToStats; BattleScene spawn wiring)
-- [ ] 03-03-PLAN.md — MMR-adaptive AI profiles (MMR_TIERS; applyMMRModifiers; enemy-only application in BattleScene)
-- [ ] 03-04-PLAN.md — AI target distribution (targetCountMap; focus penalty; jitter in selectTarget)
-- [ ] 03-05-PLAN.md — Team composition HUD banner + MATCH_COMPOSITION_SET event + human verification
+- [x] 03-01-PLAN.md — TeamManager asymmetric generation (1–5 per side); MatchOrchestrator MatchConfig type; ArenaGenerator 5 spawn points
+- [x] 03-02-PLAN.md — TeamBalancer (TEAM_BALANCE constants; computeMultiplier; applyToStats; BattleScene spawn wiring)
+- [x] 03-03-PLAN.md — MMR-adaptive AI profiles (MMR_TIERS; applyMMRModifiers; enemy-only application in BattleScene)
+- [x] 03-04-PLAN.md — AI target distribution (targetCountMap; focus penalty; jitter in selectTarget)
+- [x] 03-05-PLAN.md — Team composition HUD banner + MATCH_COMPOSITION_SET event + human verification
 
 ---
 
@@ -237,7 +237,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Foundation | 5/5 | Complete | 2026-02-23 |
 | 2. Hero Identity | 6/6 | Complete | 2026-02-23 |
-| 3. Asymmetric Teams | 0/5 | Not started | - |
+| 3. Asymmetric Teams | 5/5 | Complete | 2026-02-22 |
 | 4. Boss & Towers | 0/7 | Not started | - |
 | 5. Battle Traits & Gems | 0/5 | Not started | - |
 | 6. Neutral Camps & Arena | 0/5 | Not started | - |

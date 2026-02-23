@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-22)
 
 **Core value:** Asymmetric chaos that feels like a skill test — being thrown into a 1v3 as the solo player at high MMR and winning through outplay, not handicaps.
-**Current focus:** Phase 3 — AI System
+**Current focus:** Phase 4 — Boss & Towers
 
 ## Current Position
 
-Phase: 3 of 8 (Asymmetric Teams) — IN PROGRESS
-Plan: 2 of 5 — 03-02 done (TeamBalancer + stat scaling)
-Status: Phase 3 Plan 2 complete — TeamBalancer, TEAM_BALANCE constants, HeroRegistry statsOverride, BattleScene scaling wired
-Last activity: 2026-02-23 — Completed 03-02; MMR-adaptive scaling for smaller team; maxHP/damage scaled, armor excluded; MatchResult fully populated with teamSizeA/teamSizeB; tsc zero errors
+Phase: 3 of 8 (Asymmetric Teams) — COMPLETE
+Plan: 5 of 5 — all done
+Status: Phase 3 complete — asymmetric teams, stat scaling, MMR AI, target distribution, composition banner
+Last activity: 2026-02-22 — Completed Phase 3; all 5 plans executed, verifier passed 7/7
 
-Progress: [█████████░] 46%
+Progress: [██████████] 50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
+- Total plans completed: 16
 - Average duration: 2 min
-- Total execution time: 23 min
+- Total execution time: 30 min
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [█████████░] 46%
 |-------|-------|-------|----------|
 | 01-foundation | 5/5 | 12 min | 2 min |
 | 02-hero-identity | 6/6 | 13 min | 2 min |
-| 03-asymmetric-teams | 2/5 | 3 min | 1.5 min |
+| 03-asymmetric-teams | 5/5 | 5 min | 1 min |
 
 **Recent Trend:**
-- Last 5 plans: 1 min, 2 min, 2 min, 3 min, 1 min
+- Last 5 plans: 1 min, 1 min, 1 min, 1 min, 1 min
 - Trend: fast
 
 *Updated after each plan completion*
@@ -88,6 +88,12 @@ Recent decisions affecting current work:
 - [03-02]: statsOverride replaces heroDataMap lookup entirely (not merges) — applyToStats() returns complete HeroStats copy; no merge needed
 - [03-02]: TEAM_BALANCE.MMR_SCALE_REDUCTION=0.7 caps raw bonus so high-MMR players face fairer odds; 3v1 at MMR 2000 → no handicap
 - [03-02]: matchConfig field type changed to explicit MatchConfig import — removes ReturnType<typeof MatchOrchestrator.generateMatch> indirection
+- [03-03]: MMR_TIERS has 6 tiers matching RANK_THRESHOLDS MMR breakpoints — consistency between AI difficulty and rank display
+- [03-03]: applyMMRModifiers only applied to enemy team AI — friendly AI stays baseline to avoid confusing ally behavior at high MMR
+- [03-04]: FOCUS_PENALTY_PER_ATTACKER = 0.2 provides soft spreading — 3rd AI targeting same enemy gets +0.4 score penalty
+- [03-04]: targetCountMap rebuilt per AI tick from alive targets only — dead heroes excluded via t.isAlive check
+- [03-04]: selectTarget uses jitter ±0.1 to prevent synchronized lock-step across all AIs on same tick
+- [03-05]: showCompositionBanner uses cameras.main.width/height (not GAME_WIDTH constants) — screen-space coordinates for ScrollFactor 0 overlay
 
 ### Pending Todos
 
@@ -102,6 +108,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-23
-Stopped at: Completed 03-02-PLAN.md — TeamBalancer scaling system; TEAM_BALANCE constants, HeroRegistry statsOverride, BattleScene spawn loops wired with MMR-adaptive scaling; tsc zero errors
+Last session: 2026-02-22
+Stopped at: Completed Phase 3 — all 5 plans executed (TeamManager, TeamBalancer, MMR AI, target distribution, composition banner); verifier passed 7/7; ROADMAP/REQUIREMENTS updated
 Resume file: None

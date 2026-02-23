@@ -28,9 +28,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Asymmetric Teams
 
-- [ ] **ASYM-01**: System randomly assigns team sizes each match (1v1, 2v1, 3v2, 4v1, 5v5, any combination)
-- [ ] **ASYM-02**: Solo/smaller team receives MMR-situational adaptive scaling (high MMR = less help, low MMR = more help)
-- [ ] **ASYM-03**: AI teammates distribute targets to prevent focus-fire killing solo players in under 5 seconds
+- [x] **ASYM-01**: System randomly assigns team sizes each match (1v1, 2v1, 3v2, 4v1, 5v5, any combination)
+- [x] **ASYM-02**: Solo/smaller team receives MMR-situational adaptive scaling (high MMR = less help, low MMR = more help)
+- [x] **ASYM-03**: AI teammates distribute targets to prevent focus-fire killing solo players in under 5 seconds
 
 ### Boss System
 
@@ -117,9 +117,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HERO-04 | Phase 2 | Done |
 | HERO-05 | Phase 5 | Pending |
 | HERO-06 | Phase 5 | Pending |
-| ASYM-01 | Phase 3 | Pending |
-| ASYM-02 | Phase 3 | Pending |
-| ASYM-03 | Phase 3 | Pending |
+| ASYM-01 | Phase 3 | Done |
+| ASYM-02 | Phase 3 | Done |
+| ASYM-03 | Phase 3 | Done |
 | BOSS-01 | Phase 4 | Pending |
 | BOSS-02 | Phase 4 | Pending |
 | BOSS-03 | Phase 7 | Pending |
