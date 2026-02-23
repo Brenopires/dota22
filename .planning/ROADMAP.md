@@ -89,14 +89,14 @@ Plans:
 3. At high MMR, the scaling advantage shrinks — a high-MMR solo player in a 1v3 gets less help than a low-MMR player in the same composition.
 4. In a 3v1 scenario, AI teammates do not all target the same solo player simultaneously — at least two different targets are engaged across the team.
 
-**Plans:** TBD
+**Plans:** 5 plans
 
 Plans:
-- [ ] 03-01: TeamManager rework (random team size generation; any Mv N combination)
-- [ ] 03-02: TeamBalancer (pre-match stat scaling by team ratio; constants exposed in config)
-- [ ] 03-03: MMR-adaptive scaling (AI aggression/coordination multipliers by MMR tier — not hero stats)
-- [ ] 03-04: AI target distribution (de-prioritize over-targeted enemies; decision jitter)
-- [ ] 03-05: Team composition HUD (show team sizes at match start)
+- [ ] 03-01-PLAN.md — TeamManager asymmetric generation (1–5 per side); MatchOrchestrator MatchConfig type; ArenaGenerator 5 spawn points
+- [ ] 03-02-PLAN.md — TeamBalancer (TEAM_BALANCE constants; computeMultiplier; applyToStats; BattleScene spawn wiring)
+- [ ] 03-03-PLAN.md — MMR-adaptive AI profiles (MMR_TIERS; applyMMRModifiers; enemy-only application in BattleScene)
+- [ ] 03-04-PLAN.md — AI target distribution (targetCountMap; focus penalty; jitter in selectTarget)
+- [ ] 03-05-PLAN.md — Team composition HUD banner + MATCH_COMPOSITION_SET event + human verification
 
 ---
 
