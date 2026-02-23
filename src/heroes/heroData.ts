@@ -1,4 +1,4 @@
-import { HeroStats, HeroArchetype, AbilityType, BuffType } from '../types';
+import { HeroStats, HeroArchetype, AbilityType, BuffType, PassiveDef } from '../types';
 import { COLORS, MELEE_RANGE } from '../constants';
 
 export const heroDataMap: Record<string, HeroStats> = {
@@ -47,6 +47,11 @@ export const heroDataMap: Record<string, HeroStats> = {
         description: 'Massive AoE shockwave stuns all nearby enemies for 2s',
       },
     ],
+    passive: {
+      id: 'ig_passive', name: 'Iron Will', trigger: 'on_kill',
+      description: 'Killing an enemy refreshes Iron Fortress (grants 200HP shield)',
+      buffOnKill: { type: BuffType.SHIELD, value: 200, duration: 4, remaining: 4 },
+    },
   },
 
   shadow_blade: {
@@ -93,6 +98,11 @@ export const heroDataMap: Record<string, HeroStats> = {
         description: 'Blinding dash dealing massive damage and silencing target',
       },
     ],
+    passive: {
+      id: 'sb_passive', name: 'Shadow Rush', trigger: 'on_kill',
+      description: 'Killing an enemy grants +80 movement speed for 3s',
+      speedBurstOnKill: 80,
+    },
   },
 
   flame_witch: {
@@ -140,6 +150,12 @@ export const heroDataMap: Record<string, HeroStats> = {
         description: 'Summons a fire zone dealing DoT to all enemies inside for 4s',
       },
     ],
+    passive: {
+      id: 'fw_passive', name: 'Ember Touch', trigger: 'on_hit',
+      description: '25% chance to apply a 20 damage DoT on each auto-attack hit',
+      buffOnHit: { type: BuffType.DOT, value: 20, duration: 3, remaining: 3 },
+      passiveCooldown: 2,
+    },
   },
 
   frost_archer: {
@@ -188,6 +204,12 @@ export const heroDataMap: Record<string, HeroStats> = {
         description: 'Freezing storm slows all enemies 70% for 3s',
       },
     ],
+    passive: {
+      id: 'fa_passive', name: "Winter's Bite", trigger: 'on_hit',
+      description: 'Auto-attacks apply a stacking 15% slow (max 60%) for 2s',
+      buffOnHit: { type: BuffType.SLOW, value: 0.15, duration: 2, remaining: 2 },
+      passiveCooldown: 1,
+    },
   },
 
   holy_priest: {
@@ -236,6 +258,12 @@ export const heroDataMap: Record<string, HeroStats> = {
         description: 'Grants a massive 500HP shield to all nearby allies for 5s',
       },
     ],
+    passive: {
+      id: 'hp_passive', name: "Guardian's Grace", trigger: 'on_damage_taken',
+      description: 'Taking 100+ damage triggers an automatic 60HP self-heal',
+      healOnKill: 60, // reused as healAmount for damage_taken
+      passiveCooldown: 5,
+    },
   },
 
   storm_caller: {
@@ -282,6 +310,11 @@ export const heroDataMap: Record<string, HeroStats> = {
         description: 'Arena-wide lightning strike hitting all enemies',
       },
     ],
+    passive: {
+      id: 'sc_passive', name: 'Volt Charge', trigger: 'on_kill',
+      description: 'Killing an enemy restores 80 mana',
+      manaRestoreOnKill: 80,
+    },
   },
 
   blade_dancer: {
@@ -327,6 +360,15 @@ export const heroDataMap: Record<string, HeroStats> = {
         description: 'Spinning AoE dealing damage per tick with lifesteal',
       },
     ],
+    passive: {
+      id: 'bd_passive', name: 'Life Drain', trigger: 'on_hit',
+      description: 'Auto-attacks heal for 20% of damage dealt',
+      healOnKill: 0, // healAmount computed dynamically: 20% of hit damage
+      bonusDamageOnHit: 0,
+      // Special: use damageReturnRatio=0.2 as lifesteal ratio (repurposed)
+      damageReturnRatio: 0.2,
+      passiveCooldown: 0.5,
+    },
   },
 
   war_drummer: {
@@ -376,6 +418,12 @@ export const heroDataMap: Record<string, HeroStats> = {
         description: 'Massive team-wide damage buff for 8s',
       },
     ],
+    passive: {
+      id: 'wd_passive', name: 'Battle Rhythm', trigger: 'on_damage_taken',
+      description: 'Taking damage grants a 40 damage buff to self for 4s',
+      buffOnKill: { type: BuffType.STAT_BUFF, value: 40, duration: 4, remaining: 4 },
+      passiveCooldown: 6,
+    },
   },
 
   venom_stalker: {
@@ -424,6 +472,12 @@ export const heroDataMap: Record<string, HeroStats> = {
         description: 'Persistent poison field that infects all enemies inside',
       },
     ],
+    passive: {
+      id: 'vs_passive', name: 'Venom Coat', trigger: 'on_hit',
+      description: 'Auto-attacks apply a guaranteed 30 damage DoT for 3s',
+      buffOnHit: { type: BuffType.DOT, value: 30, duration: 3, remaining: 3 },
+      passiveCooldown: 3,
+    },
   },
 
   stone_golem: {
@@ -471,6 +525,12 @@ export const heroDataMap: Record<string, HeroStats> = {
         description: 'Petrifies all nearby enemies, rooting them for 3s',
       },
     ],
+    passive: {
+      id: 'sg_passive', name: 'Stone Skin', trigger: 'on_damage_taken',
+      description: 'Each hit taken stacks +1 armor (max +8 per match)',
+      armorStackOnDamage: 1,
+      passiveCooldown: 1,
+    },
   },
 
   lightning_duelist: {
@@ -516,6 +576,11 @@ export const heroDataMap: Record<string, HeroStats> = {
         description: 'Chain lightning overload hitting all enemies in range',
       },
     ],
+    passive: {
+      id: 'ld_passive', name: 'Quick Hands', trigger: 'on_kill',
+      description: 'Killing an enemy resets all ability cooldowns',
+      cooldownResetOnKill: true,
+    },
   },
 
   blood_shaman: {
@@ -563,6 +628,11 @@ export const heroDataMap: Record<string, HeroStats> = {
         description: 'Sacrifices 20% of own HP to deal massive AoE damage',
       },
     ],
+    passive: {
+      id: 'bs_passive', name: 'Devour', trigger: 'on_kill',
+      description: 'Killing an enemy restores 25% of their max HP to self',
+      healOnKill: 150, // flat approximation (heroes have ~600-1200 HP, 25% avg ~200, use 150 flat)
+    },
   },
 
   phantom_knight: {
@@ -608,6 +678,12 @@ export const heroDataMap: Record<string, HeroStats> = {
         description: 'Enters ghost form: massive shield + nearby enemy DoT for 6s',
       },
     ],
+    passive: {
+      id: 'pk_passive', name: 'Pain Redirect', trigger: 'on_damage_taken',
+      description: 'Reflects 15% of damage taken back to attacker',
+      damageReturnRatio: 0.15,
+      passiveCooldown: 0,
+    },
   },
 };
 
