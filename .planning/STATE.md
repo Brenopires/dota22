@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 ## Current Position
 
 Phase: 4 of 8 (Boss & Towers) — IN PROGRESS
-Plan: 2 of 6 — complete
-Status: Plan 04-02 complete — TowerEntity with AoE attack, out-of-combat regen, disable lifecycle
-Last activity: 2026-02-23 — Completed 04-02 (TowerEntity)
+Plan: 3 of 6 — complete
+Status: Plan 04-03 complete — BossAISystem + BattleScene integration + CombatSystem boss/tower targeting
+Last activity: 2026-02-23 — Completed 04-03 (Boss AI & Scene Integration)
 
-Progress: [████████████] 56%
+Progress: [█████████████] 59%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 18
+- Total plans completed: 19
 - Average duration: 2 min
-- Total execution time: 35 min
+- Total execution time: 44 min
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [████████████] 56%
 | 01-foundation | 5/5 | 12 min | 2 min |
 | 02-hero-identity | 6/6 | 13 min | 2 min |
 | 03-asymmetric-teams | 5/5 | 5 min | 1 min |
-| 04-boss-towers | 2/6 | 5 min | 3 min |
+| 04-boss-towers | 3/6 | 14 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 1 min, 1 min, 1 min, 3 min, 2 min
-- Trend: fast
+- Last 5 plans: 1 min, 1 min, 3 min, 2 min, 9 min
+- Trend: moderate
 
 *Updated after each plan completion*
 
@@ -103,6 +103,10 @@ Recent decisions affecting current work:
 - [04-02]: getArmor() returns flat 10 — higher than heroes but no scaling (towers are static structures)
 - [04-02]: Health bar passes mana ratio 0 — towers have no mana system
 - [04-02]: Attack VFX line drawn in world-space (not container child) — endpoints span tower-to-target positions
+- [04-03]: BossEntity.attackTimer changed from private to public — BossAISystem needs direct access to check and reset
+- [04-03]: BossAISystem is standalone (not AIController subclass) — boss has no abilities/mana/hero target selection
+- [04-03]: getNonHeroTargets() returns boss (always) + enemy tower (team-filtered) — canonical API for CombatSystem boss/tower targeting
+- [04-03]: Buffs not applied to boss/tower from projectile or area effect hits — buff system is hero-only
 
 ### Pending Todos
 
@@ -118,5 +122,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 04-02-PLAN.md — TowerEntity with AoE attack, out-of-combat regen, disable lifecycle
+Stopped at: Completed 04-03-PLAN.md — BossAISystem + BattleScene boss/tower integration + CombatSystem targeting
 Resume file: None
