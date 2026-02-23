@@ -113,6 +113,77 @@ export interface ActiveBuff {
   tickTimer?: number;
 }
 
+// ---------------------------------------------------------------------------
+// Phase 5 additions -- Battle Traits and Gems
+// ---------------------------------------------------------------------------
+
+export type TraitCategory = 'stat' | 'mechanic' | 'rule_change';
+
+export interface TraitOnHitEffect {
+  healPercentOfDamage?: number;   // e.g., 0.10 = 10% lifesteal
+  dotChance?: number;              // e.g., 0.30 = 30% chance
+  dotDamage?: number;              // flat DoT damage
+  dotDuration?: number;            // DoT duration in seconds
+}
+
+export interface TraitOnKillEffect {
+  damageBuff?: number;             // flat +damage buff to killer
+  buffDuration?: number;           // buff duration in seconds
+  teamDamageBuff?: number;         // flat +damage to entire team
+  teamBuffDuration?: number;       // team buff duration in seconds
+}
+
+export interface TraitOnDamageTakenEffect {
+  reflectPercent?: number;         // e.g., 0.08 = 8% damage reflected
+}
+
+export interface TraitDef {
+  id: string;
+  name: string;
+  description: string;
+  category: TraitCategory;
+  color: number;
+  icon: string;                     // short emoji or text for HUD/draft display
+
+  // Stat modifiers (applied globally to all heroes at match start)
+  hpMod?: number;
+  damageMod?: number;
+  armorMod?: number;
+  moveSpeedMod?: number;
+  manaMod?: number;
+  manaRegenMod?: number;            // flat mana regen bonus (per second)
+
+  // Mechanic hooks (TraitSystem subscribes to events and applies these)
+  onHitEffect?: TraitOnHitEffect;
+  onKillEffect?: TraitOnKillEffect;
+  onDamageTakenEffect?: TraitOnDamageTakenEffect;
+
+  // Rule change (max 1 per match, enforced by selection logic)
+  ruleChange?: {
+    type: string;                   // identifier for the rule change
+    description: string;
+  };
+
+  // Incompatibility blacklist: hero passive IDs that conflict with this trait
+  incompatiblePassives?: string[];
+}
+
+export interface GemDef {
+  id: string;
+  name: string;
+  description: string;
+  color: number;
+  icon: string;
+
+  // Stat modifiers (applied to assigned hero only, at init time)
+  hpBonus?: number;
+  damageBonus?: number;
+  armorBonus?: number;
+  moveSpeedBonus?: number;
+  manaBonus?: number;
+  attackRangeBonus?: number;
+}
+
 export interface MatchConfig {
   teamSizeA: number;
   teamSizeB: number;
@@ -122,6 +193,9 @@ export interface MatchConfig {
   playerHero: string;
   arenaTheme: string;
   arenaLayout: string;
+  // TODO(05-02): MatchOrchestrator must return traitId + gemAssignments
+  traitId: string;                          // selected Battle Trait ID
+  gemAssignments: Record<string, string>;   // heroId -> gemId mapping
 }
 
 export interface MatchResult {
