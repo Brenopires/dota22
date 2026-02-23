@@ -122,6 +122,34 @@ export const CAMP_BUFF_HASTE_VALUE = 0.25; // +25% move speed
 export const CAMP_BUFF_COOLDOWN_VALUE = 0.20; // -20% cooldown reduction
 export const CAMP_SCORE_POINTS = 1; // 1 point per camp clear
 
+// ---------------------------------------------------------------------------
+// Phase 7 — Scoring
+// ---------------------------------------------------------------------------
+export const KILL_SCORE = 1;
+export const BOSS_KILL_SCORE = 3;
+export const TOWER_DAMAGE_THRESHOLD_SCORE = 2;
+export const TOWER_DAMAGE_THRESHOLD_PCT = 0.50;
+
+// Phase 7 — Boss Tier 2
+export const BOSS_TIER2_DAMAGE_AMP = 25;
+export const BOSS_RESPAWN_DELAY = 30000;
+export const BOSS_ROAM_SPEED = 60;
+export const BOSS_ROAM_WAYPOINTS: { x: number; y: number }[] = [
+  { x: 800, y: 200 },
+  { x: 1150, y: 350 },
+  { x: 1250, y: 600 },
+  { x: 1150, y: 850 },
+  { x: 800, y: 1000 },
+  { x: 450, y: 850 },
+  { x: 350, y: 600 },
+  { x: 450, y: 350 },
+];
+
+// Phase 7 — Sudden Death
+export const SUDDEN_DEATH_COLOR = 0xff0000;
+export const SUDDEN_DEATH_FLASH_DURATION = 600;
+export const SUDDEN_DEATH_FLASH_INTENSITY = 0.7;
+
 export const HERO_ELEMENT_MAP: Record<string, string> = {
   flame_witch: 'fire',
   frost_archer: 'ice',

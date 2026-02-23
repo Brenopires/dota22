@@ -256,9 +256,10 @@ export interface ObstacleDef {
 // ---------------------------------------------------------------------------
 
 export enum MatchPhase {
-  PRE_MATCH = 'pre_match',
-  ACTIVE    = 'active',
-  ENDED     = 'ended',
+  PRE_MATCH    = 'pre_match',
+  ACTIVE       = 'active',
+  SUDDEN_DEATH = 'sudden_death',
+  ENDED        = 'ended',
 }
 
 import type { Hero } from './entities/Hero';

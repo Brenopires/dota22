@@ -45,6 +45,10 @@ export const Events = {
   CAMP_CLEARED:        'camp:cleared',      // { victim: NeutralMob, killerId, campType }
   CAMP_BUFF_GRANTED:   'camp:buff_granted', // { campType, team, duration }
   CAMP_RESPAWNED:      'camp:respawned',    // { campType }
+  // Phase 7 additions:
+  TOWER_THRESHOLD_SCORED: 'tower:threshold_scored', // { scoringTeam, tower }
+  SUDDEN_DEATH_TRIGGERED: 'sudden_death:triggered', // { reason }
+  BOSS_RESPAWNED:         'boss:respawned',          // { boss }
 } as const;
 
 /** Derived union type of all valid event keys. */
