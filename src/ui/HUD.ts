@@ -4,6 +4,8 @@ import { IBattleScene } from '../types';
 import { AbilityBar } from './AbilityBar';
 import { BossHealthBar } from './BossHealthBar';
 import { XP_THRESHOLDS } from '../systems/XPSystem';
+import { getTraitById } from '../traits/traitData';
+import { getGemById } from '../gems/gemData';
 
 interface KillFeedEntry {
   text: Phaser.GameObjects.Text;
@@ -31,6 +33,8 @@ export class HUD {
   private towerBGraphics: Phaser.GameObjects.Graphics;
   private towerAText: Phaser.GameObjects.Text;
   private towerBText: Phaser.GameObjects.Text;
+  private traitText: Phaser.GameObjects.Text | null = null;
+  private gemText: Phaser.GameObjects.Text | null = null;
 
   constructor(scene: IBattleScene & Phaser.Scene) {
     this.scene = scene;
@@ -58,6 +62,29 @@ export class HUD {
       fontFamily: 'monospace',
     }).setOrigin(0.5).setScrollFactor(0).setDepth(200);
 
+    // Battle Trait indicator (below kill score)
+    const matchConfig = (scene as any).matchConfig;
+    if (matchConfig?.traitId) {
+      const traitDef = getTraitById(matchConfig.traitId);
+      if (traitDef) {
+        const traitColorStr = '#' + Phaser.Display.Color.IntegerToColor(traitDef.color).color.toString(16).padStart(6, '0');
+
+        // Trait background
+        const traitBg = scene.add.graphics();
+        traitBg.fillStyle(traitDef.color, 0.12);
+        traitBg.fillRoundedRect(GAME_WIDTH / 2 - 100, 68, 200, 16, 3);
+        traitBg.setScrollFactor(0).setDepth(199);
+
+        // Trait text
+        this.traitText = scene.add.text(GAME_WIDTH / 2, 76, `${traitDef.icon} ${traitDef.name}`, {
+          fontSize: '10px',
+          color: traitColorStr,
+          fontFamily: 'monospace',
+          fontStyle: 'bold',
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(200);
+      }
+    }
+
     // Hero name (bottom left)
     const heroName = scene.player.stats.name;
     this.heroNameText = scene.add.text(20, GAME_HEIGHT - 95, heroName, {
@@ -67,10 +94,10 @@ export class HUD {
       fontStyle: 'bold',
     }).setScrollFactor(0).setDepth(200);
 
-    // Panel background behind HP/mana/XP bars
+    // Panel background behind HP/mana/XP bars (expanded to fit gem indicator)
     const panelBg = scene.add.graphics();
     panelBg.fillStyle(0x000000, 0.4);
-    panelBg.fillRoundedRect(10, GAME_HEIGHT - 100, 200, 78, 8);
+    panelBg.fillRoundedRect(10, GAME_HEIGHT - 100, 200, 90, 8);
     panelBg.setScrollFactor(0).setDepth(199);
 
     // HP/Mana graphics (drawn each frame)
@@ -101,6 +128,22 @@ export class HUD {
       fontFamily: 'monospace',
       fontStyle: 'bold',
     }).setScrollFactor(0).setDepth(202);
+
+    // Player Gem indicator (below XP bar in stat panel)
+    if (matchConfig?.gemAssignments && matchConfig?.playerHero) {
+      const playerGemId = matchConfig.gemAssignments[matchConfig.playerHero];
+      if (playerGemId) {
+        const gemDef = getGemById(playerGemId);
+        if (gemDef) {
+          const gemColorStr = '#' + Phaser.Display.Color.IntegerToColor(gemDef.color).color.toString(16).padStart(6, '0');
+          this.gemText = scene.add.text(20, GAME_HEIGHT - 25, `${gemDef.icon} ${gemDef.name}: ${gemDef.description}`, {
+            fontSize: '9px',
+            color: gemColorStr,
+            fontFamily: 'monospace',
+          }).setScrollFactor(0).setDepth(202);
+        }
+      }
+    }
 
     // Ability bar
     this.abilityBar = new AbilityBar(scene, scene.player);
