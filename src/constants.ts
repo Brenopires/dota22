@@ -31,7 +31,6 @@ export const DAMAGE_NUMBER_DURATION = 800;
 export const DAMAGE_NUMBER_RISE = 30;
 
 export const MMR_INITIAL = 1000;
-export const MMR_K_FACTOR = 32;
 
 export const COLORS = {
   IRON_GUARD: 0x4682B4,
@@ -50,13 +49,17 @@ export const COLORS = {
 } as const;
 
 export const RANK_THRESHOLDS = [
-  { name: 'Bronze', minMMR: 0, color: 0xCD7F32 },
-  { name: 'Silver', minMMR: 800, color: 0xC0C0C0 },
-  { name: 'Gold', minMMR: 1100, color: 0xFFD700 },
-  { name: 'Platinum', minMMR: 1400, color: 0x00CED1 },
-  { name: 'Diamond', minMMR: 1700, color: 0xB9F2FF },
-  { name: 'Master', minMMR: 2000, color: 0xFF4500 },
+  { name: 'Bronze',   minMMR: 0,    color: 0xCD7F32 },
+  { name: 'Silver',   minMMR: 800,  color: 0xC0C0C0 },
+  { name: 'Gold',     minMMR: 1000, color: 0xFFD700 },
+  { name: 'Platinum', minMMR: 1200, color: 0x00CED1 },
+  { name: 'Apex',     minMMR: 1500, color: 0xFF4500 },
 ] as const;
+
+// ---------------------------------------------------------------------------
+// Phase 8 — Draft & Ranked
+// ---------------------------------------------------------------------------
+export const DRAFT_PICK_TIMEOUT = 25; // seconds — 25s gives 5s margin under the 30s requirement
 
 export const TEAM_BALANCE = {
   BASE_SCALE_FACTOR: 0.35,   // bonus per unit of size ratio (e.g., 3v1 → ratio 3 → rawBonus 0.70)
