@@ -9,10 +9,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Match Flow
 
-- [ ] **FLOW-01**: Match has a 5-minute hard cap with visible countdown timer
-- [ ] **FLOW-02**: Heroes respawn after death with max 10-second respawn timer
+- [x] **FLOW-01**: Match has a 5-minute hard cap with visible countdown timer
+- [x] **FLOW-02**: Heroes respawn after death with max 10-second respawn timer
 - [ ] **FLOW-03**: Match ends with score calculation: hero kill (1pt), boss kill (3pt), tower damage threshold (2pt), neutral control majority (1pt)
-- [ ] **FLOW-04a**: Match progresses through states: PRE_MATCH → ACTIVE → ENDED with forward-only transitions
+- [x] **FLOW-04a**: Match progresses through states: PRE_MATCH → ACTIVE → ENDED with forward-only transitions
 - [ ] **FLOW-04b**: Match state machine supports SUDDEN_DEATH state between ACTIVE and ENDED
 - [ ] **FLOW-05**: Tie at 5:00 triggers Sudden Death mode (no respawns, last team standing wins)
 - [ ] **FLOW-06**: Match can end early via tower destruction (instant win) or boss tier 3 kill (triggers Sudden Death)
@@ -104,10 +104,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FLOW-01 | Phase 1 | Pending |
-| FLOW-02 | Phase 1 | Pending |
+| FLOW-01 | Phase 1 | Done |
+| FLOW-02 | Phase 1 | Done |
 | FLOW-03 | Phase 7 | Pending |
-| FLOW-04a | Phase 1 | Pending |
+| FLOW-04a | Phase 1 | Done |
 | FLOW-04b | Phase 7 | Pending |
 | FLOW-05 | Phase 7 | Pending |
 | FLOW-06 | Phase 7 | Pending |

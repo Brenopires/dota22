@@ -10,7 +10,7 @@ Rift Clash evolves from a working arena brawler into a competitive asymmetric he
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 1: Foundation** - EventBus, BaseEntity, MatchStateMachine, respawn, and 5-minute match timer
+- [x] **Phase 1: Foundation** - EventBus, BaseEntity, MatchStateMachine, respawn, and 5-minute match timer
 - [ ] **Phase 2: Hero Identity** - Hero roster (6-10), ultimates, passives, XP leveling, combat event hooks
 - [ ] **Phase 3: Asymmetric Teams** - Random team sizes, MMR-adaptive scaling, AI target distribution
 - [ ] **Phase 4: Boss & Towers** - BossEntity (Tier 1), multi-phase boss AI, tower entities with destruction win
@@ -40,11 +40,11 @@ Rift Clash evolves from a working arena brawler into a competitive asymmetric he
 **Plans:** 5 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — EventBus singleton + IBattleScene interface + MatchPhase enum
-- [ ] 01-02-PLAN.md — BaseEntity abstract class + Hero refactored to extend it
-- [ ] 01-03-PLAN.md — MatchStateMachine (PRE_MATCH → ACTIVE → ENDED) + BattleScene integration + timer cleanup
-- [ ] 01-04-PLAN.md — Respawn system (5s timer, spawn-point re-entry, replaces instant-defeat)
-- [ ] 01-05-PLAN.md — 5-minute countdown HUD (MM:SS format) + player respawn overlay
+- [x] 01-01-PLAN.md — EventBus singleton + IBattleScene interface + MatchPhase enum
+- [x] 01-02-PLAN.md — BaseEntity abstract class + Hero refactored to extend it
+- [x] 01-03-PLAN.md — MatchStateMachine (PRE_MATCH → ACTIVE → ENDED) + BattleScene integration + timer cleanup
+- [x] 01-04-PLAN.md — Respawn system (5s timer, spawn-point re-entry, replaces instant-defeat)
+- [x] 01-05-PLAN.md — 5-minute countdown HUD (MM:SS format) + player respawn overlay
 
 ---
 
@@ -235,7 +235,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/5 | Planned | - |
+| 1. Foundation | 5/5 | Complete | 2026-02-23 |
 | 2. Hero Identity | 0/6 | Not started | - |
 | 3. Asymmetric Teams | 0/5 | Not started | - |
 | 4. Boss & Towers | 0/7 | Not started | - |
