@@ -5,33 +5,33 @@
 See: .planning/PROJECT.md (updated 2026-02-22)
 
 **Core value:** Asymmetric chaos that feels like a skill test — being thrown into a 1v3 as the solo player at high MMR and winning through outplay, not handicaps.
-**Current focus:** Phase 2 — Hero Identity
+**Current focus:** Phase 3 — AI System
 
 ## Current Position
 
-Phase: 2 of 8 (Hero Identity) — In Progress
-Plan: 4 of 5 — 02-04 done
-Status: Active — 02-04 complete, ready for 02-05 (HUD XP bar)
-Last activity: 2026-02-23 — Completed 02-04 (passive system); 13 hero passives in heroData.ts, Hero.subscribePassive/applyPassiveEffect/showPassiveVFX/destroy lifecycle, EventBus cleanup
+Phase: 2 of 8 (Hero Identity) — COMPLETE
+Plan: 5 of 5 — 02-05 done
+Status: Phase 2 complete — ready to begin Phase 3 (AI System)
+Last activity: 2026-02-23 — Completed 02-05 (HUD XP bar + 4-slot AbilityBar with gold R slot); HUD.ts xpGraphics/levelText polling player.level each frame, AbilityBar isUltimate-driven gold color
 
-Progress: [█████░░░░░] 35%
+Progress: [████████░░] 40%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
+- Total plans completed: 9
 - Average duration: 2 min
-- Total execution time: 17 min
+- Total execution time: 20 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 5/5 | 12 min | 2 min |
-| 02-hero-identity | 4/5 | 8 min | 2 min |
+| 02-hero-identity | 5/5 | 11 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 2 min, 1 min, 1 min, 2 min, 2 min
+- Last 5 plans: 1 min, 1 min, 2 min, 2 min, 3 min
 - Trend: fast
 
 *Updated after each plan completion*
@@ -74,6 +74,10 @@ Recent decisions affecting current work:
 - [02-04]: buffOnKill/healOnKill fields reused across trigger types in applyPassiveEffect() — routing by passive.trigger means same field can mean different things per trigger category
 - [02-04]: destroy() stores passiveHandlerRef (arrow wrapper) and uses it for EventBus.off — exact reference match required for Phaser EventEmitter cleanup
 - [02-04]: passiveCooldown: 0 for phantom_knight is falsy — guard `passive.passiveCooldown && timer > 0` correctly skips the gate, making every hit trigger without cooldown
+- [02-05]: HUD XP bar polls player.level/currentXP each frame — no EventBus subscription needed, consistent with HP/mana polling pattern, no cleanup risk
+- [02-05]: AbilityBar gold color driven by ability.isUltimate flag (not slot index 3) — future-proof if slot order changes
+- [02-05]: Panel background expanded from 62px to 78px height — 16px added for XP bar row, keeps bottom-left layout compact
+- [02-05]: R slot uses rGap=16 extra spacing beyond Q/W/E standard gap=8 — visual separation communicates ultimate distinction without a separate panel
 
 ### Pending Todos
 
@@ -89,5 +93,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 02-04-PLAN.md — passive system, 13 hero passives in heroData.ts, Hero.subscribePassive/applyPassiveEffect/showPassiveVFX/destroy lifecycle, EventBus cleanup
+Stopped at: Completed 02-05-PLAN.md — HUD XP bar + level text, AbilityBar 4-slot with gold R border; Phase 2 complete
 Resume file: None
