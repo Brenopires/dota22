@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 
 ## Current Position
 
-Phase: 6 of 8 (Neutral Camps & Arena) — COMPLETE
-Plan: 5 of 5 — all done
-Status: Phase 6 complete — HUD camp buff icons + all 4 success criteria verified
-Last activity: 2026-02-23 — Completed 06-05: HUD camp buff icons + Phase 6 verification
+Phase: 7 of 8 (Scoring & Sudden Death) — IN PROGRESS
+Plan: 1 of 5 — complete
+Status: Phase 7 plan 01 complete — four-source scoring + SUDDEN_DEATH state foundation
+Last activity: 2026-02-23 — Completed 07-01: scoring types, constants, events, MatchStateMachine
 
-Progress: [████████████████████] 80%
+Progress: [████████████████████] 82%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 30
+- Total plans completed: 31
 - Average duration: 2 min
-- Total execution time: 63 min
+- Total execution time: 65 min
 
 **By Phase:**
 
@@ -33,6 +33,7 @@ Progress: [████████████████████] 80%
 | 04-boss-towers | 6/6 | 16 min | 3 min |
 | 05-battle-traits | 5/5 | 9 min | 2 min |
 | 06-neutral-camps | 5/5 | 9 min | 2 min |
+| 07-scoring-sudden-death | 1/5 | 2 min | 2 min |
 
 **Recent Trend:**
 - Last 5 plans: 2 min, 2 min, 2 min, 2 min, 2 min
@@ -137,6 +138,12 @@ Recent decisions affecting current work:
 - [06-04]: bossMinute++ moved outside boss alive check — camp mobs scale by match elapsed minutes, not boss lifetime
 - [06-04]: Camp mob physics colliders registered at create() time for initial 4 mobs — Phaser arcade body persists across respawn() calls
 - [06-05]: HUD buff icons destroy+recreate each frame (max 4 text+graphics objects) — simpler than per-icon show/hide state tracking; negligible cost matches HP/mana bar redraw pattern
+- [07-01]: SUDDEN_DEATH inserted at index 2 in transition() order array — preserves forward-only guard for all existing ACTIVE→ENDED transitions
+- [07-01]: onTowerDamaged guards on tower.isAlive to avoid scoring on destruction frame (Pitfall 4 from research)
+- [07-01]: towerThresholdA/B uses boolean flag — prevents double-awarding if tower takes more damage after threshold
+- [07-01]: onBossKilled uses killerId.endsWith(_A/_B) — consistent with onCampCleared pattern, no Hero[] reference needed in MSM
+- [07-01]: getScore() returns full spread — callers get new fields automatically without API change
+- [07-01]: onTick() NOT modified — Sudden Death timer trigger is plan 04 responsibility as specified
 
 ### Pending Todos
 
@@ -145,12 +152,12 @@ None yet.
 ### Blockers/Concerns
 
 - [Phase 4] Boss Tier 2 roaming (obstacle-aware pathfinding) is highest technical risk — NavMesh vs. waypoint graph decision needed during Phase 4 planning
-- [Phase 7] Sudden Death at exact 5:00:000 boundary requires formal state transition specification — flag for plan-phase
+- [Phase 7] Sudden Death at exact 5:00:000 boundary requires formal state transition specification — ADDRESSED in plan 04 (timer boundary handled by score tie check in onTick)
 - [General] Scene restart memory leak (tickTimer accumulation) — RESOLVED in 01-03 via MatchStateMachine.destroy() + scene.time.removeEvent()
 - [02-ongoing] heroData.ts TypeScript errors on all 13 heroes (missing passive field) — RESOLVED in Plan 02-04
 
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 06-05-PLAN.md — HUD camp buff icons + Phase 6 verification complete
+Stopped at: Completed 07-01-PLAN.md — four-source scoring + SUDDEN_DEATH state + Phase 7 constants/events
 Resume file: None
