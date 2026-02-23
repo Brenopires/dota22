@@ -141,14 +141,14 @@ Plans:
 3. At least 8 Battle Traits are implemented covering stat, mechanic, and rule-change categories; rule-change traits are capped at 1 per match.
 4. No combination of trait + hero passive + Gem breaks a test match (eliminates core constraints like respawn, mana, or cooldown in under 2 minutes).
 
-**Plans:** TBD
+**Plans:** 5 plans
 
 Plans:
-- [ ] 05-01: TraitRegistry (8-12 initial traits; stat / mechanic / rule-change categories; incompatibility blacklists)
-- [ ] 05-02: TraitSystem (event-listener hooks into EventBus; single trait per match enforced at init)
-- [ ] 05-03: Random Gem system (GemRegistry; random assignment at match start; modifier applied to hero stats or ability)
-- [ ] 05-04: Draft scene trait display (selected trait name + tooltip shown before match)
-- [ ] 05-05: Trait + Gem HUD indicators (visible during match)
+- [ ] 05-01-PLAN.md — TraitDef/GemDef types + traitData (8 traits) + gemData (8 gems) registries
+- [ ] 05-02-PLAN.md — TraitSystem runtime + MatchOrchestrator trait/gem selection + BattleScene integration
+- [ ] 05-03-PLAN.md — DraftScene trait banner + per-hero gem display
+- [ ] 05-04-PLAN.md — HUD trait indicator + gem indicator in stat panel
+- [ ] 05-05-PLAN.md — Verification + STATE/ROADMAP completion update
 
 ---
 
