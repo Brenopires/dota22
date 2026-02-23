@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 ## Current Position
 
 Phase: 3 of 8 (Asymmetric Teams) — IN PROGRESS
-Plan: 1 of 5 — 03-01 done (data foundation)
-Status: Phase 3 Plan 1 complete — TeamManager/MatchOrchestrator/types/ArenaGenerator updated for asymmetric teams
-Last activity: 2026-02-23 — Completed 03-01; TeamSizes interface, MatchConfig type, getRandomTeamSizes(), independent 1-5v1-5 sizes, 5 spawn points per side; tsc zero errors
+Plan: 2 of 5 — 03-02 done (TeamBalancer + stat scaling)
+Status: Phase 3 Plan 2 complete — TeamBalancer, TEAM_BALANCE constants, HeroRegistry statsOverride, BattleScene scaling wired
+Last activity: 2026-02-23 — Completed 03-02; MMR-adaptive scaling for smaller team; maxHP/damage scaled, armor excluded; MatchResult fully populated with teamSizeA/teamSizeB; tsc zero errors
 
-Progress: [████████░░] 42%
+Progress: [█████████░] 46%
 
 ## Performance Metrics
 
@@ -29,7 +29,7 @@ Progress: [████████░░] 42%
 |-------|-------|-------|----------|
 | 01-foundation | 5/5 | 12 min | 2 min |
 | 02-hero-identity | 6/6 | 13 min | 2 min |
-| 03-asymmetric-teams | 1/5 | 1 min | 1 min |
+| 03-asymmetric-teams | 2/5 | 3 min | 1.5 min |
 
 **Recent Trend:**
 - Last 5 plans: 1 min, 2 min, 2 min, 3 min, 1 min
@@ -84,6 +84,10 @@ Recent decisions affecting current work:
 - [03-01]: MatchResult.teamSizeA/teamSizeB made optional — prevents BattleScene compile error; Plan 03-02 will populate them in endMatch()
 - [03-01]: TeamSizes interface exported from TeamManager (not types.ts) — co-located with getRandomTeamSizes() producer function
 - [03-01]: Backward-compat teamSize = Math.max(sizeA, sizeB) in MatchOrchestrator return — BattleScene reads until 03-02 migration
+- [03-02]: Armor excluded from TeamBalancer scaling — avoids compounding with level-up armor gains; only maxHP and damage scale
+- [03-02]: statsOverride replaces heroDataMap lookup entirely (not merges) — applyToStats() returns complete HeroStats copy; no merge needed
+- [03-02]: TEAM_BALANCE.MMR_SCALE_REDUCTION=0.7 caps raw bonus so high-MMR players face fairer odds; 3v1 at MMR 2000 → no handicap
+- [03-02]: matchConfig field type changed to explicit MatchConfig import — removes ReturnType<typeof MatchOrchestrator.generateMatch> indirection
 
 ### Pending Todos
 
@@ -99,5 +103,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 03-01-PLAN.md — data foundation for asymmetric teams; TeamSizes, MatchConfig, getRandomTeamSizes(), 5 spawn points; tsc zero errors
+Stopped at: Completed 03-02-PLAN.md — TeamBalancer scaling system; TEAM_BALANCE constants, HeroRegistry statsOverride, BattleScene spawn loops wired with MMR-adaptive scaling; tsc zero errors
 Resume file: None
