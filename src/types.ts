@@ -23,6 +23,8 @@ export enum BuffType {
   STAT_BUFF = 'stat_buff',
   HEAL_OVER_TIME = 'heal_over_time',
   SILENCE = 'silence',
+  HASTE = 'haste',
+  COOLDOWN_REDUCTION = 'cdr',
 }
 
 export enum AIState {
@@ -43,6 +45,13 @@ export enum BossPhase {
   NORMAL = 'normal',
   ENRAGED = 'enraged',
   DYING = 'dying',
+}
+
+export enum CampType {
+  DAMAGE = 'damage',
+  SHIELD = 'shield',
+  HASTE = 'haste',
+  COOLDOWN = 'cooldown',
 }
 
 export interface HeroStats {
