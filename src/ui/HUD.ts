@@ -86,8 +86,8 @@ export class HUD {
     const scene = this.scene;
 
     // Timer
-    const timer = Math.max(0, scene.matchTimer);
-    this.timerText.setText(`${timer}`);
+    const timer = Math.max(0, scene.matchStateMachine?.getTimeRemaining() ?? 0);
+    this.timerText.setText(this.formatTime(timer));
     if (timer <= 10) {
       this.timerText.setColor('#ff4444');
     }
@@ -149,7 +149,8 @@ export class HUD {
     this.abilityBar.update();
 
     // Match over overlay
-    if (scene.matchOver && !this.matchOverText) {
+    const isEnded = scene.matchStateMachine?.getPhase() === 'ended';
+    if (isEnded && !this.matchOverText) {
       this.matchOverText = scene.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'MATCH OVER', {
         fontSize: '40px',
         color: '#ffffff',
@@ -157,6 +158,12 @@ export class HUD {
         fontStyle: 'bold',
       }).setOrigin(0.5).setScrollFactor(0).setDepth(300);
     }
+  }
+
+  private formatTime(seconds: number): string {
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
   }
 
   showKill(killerName: string, victimName: string): void {

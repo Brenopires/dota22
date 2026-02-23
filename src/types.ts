@@ -137,7 +137,7 @@ export enum MatchPhase {
 }
 
 import type { Hero } from './entities/Hero';
-// MatchStateMachine will be added to IBattleScene in plan 01-03 when the class exists.
+import type { MatchStateMachine } from './systems/MatchStateMachine';
 export interface IBattleScene {
   heroes: Hero[];
   teamA: Hero[];
@@ -147,8 +147,7 @@ export interface IBattleScene {
   spawnB: { x: number; y: number }[];
   teamAKills: number;
   teamBKills: number;
-  matchTimer: number;
-  matchOver: boolean;
+  matchStateMachine: MatchStateMachine;
   getEnemies(team: Team): Hero[];
   getAllies(team: Team, excludeSelf?: Hero): Hero[];
 }

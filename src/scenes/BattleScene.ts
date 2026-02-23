@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { ARENA_WIDTH, ARENA_HEIGHT, MATCH_DURATION, MANA_REGEN_RATE, AI_UPDATE_INTERVAL } from '../constants';
-import { Team, MatchResult } from '../types';
+import { Team, MatchResult, MatchPhase } from '../types';
 import { Hero } from '../entities/Hero';
 import { HeroRegistry } from '../heroes/HeroRegistry';
 import { CombatSystem } from '../systems/CombatSystem';
@@ -11,6 +11,9 @@ import { HUD } from '../ui/HUD';
 import { MMRCalculator } from '../utils/MMRCalculator';
 import { StorageManager } from '../utils/StorageManager';
 import { VFXManager } from '../systems/VFXManager';
+import { MatchStateMachine } from '../systems/MatchStateMachine';
+import { EventBus, Events } from '../systems/EventBus';
+import { BaseEntity } from '../entities/BaseEntity';
 
 export class BattleScene extends Phaser.Scene {
   player!: Hero;
@@ -21,12 +24,13 @@ export class BattleScene extends Phaser.Scene {
   vfxManager!: VFXManager;
   aiControllers: AIController[] = [];
   hud!: HUD;
-  matchTimer = MATCH_DURATION;
-  matchOver = false;
+  matchStateMachine!: MatchStateMachine;
   teamAKills = 0;
   teamBKills = 0;
   playerKills = 0;
   playerDeaths = 0;
+  private endingMatch = false;
+  private respawnTimers: Map<string, Phaser.Time.TimerEvent> = new Map();
   keys!: {
     W: Phaser.Input.Keyboard.Key;
     A: Phaser.Input.Keyboard.Key;
@@ -52,8 +56,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   create(data?: { matchConfig?: ReturnType<typeof MatchOrchestrator.generateMatch> }): void {
-    this.matchOver = false;
-    this.matchTimer = MATCH_DURATION;
+    this.endingMatch = false;
     this.teamAKills = 0;
     this.teamBKills = 0;
     this.playerKills = 0;
@@ -63,6 +66,7 @@ export class BattleScene extends Phaser.Scene {
     this.teamB = [];
     this.aiControllers = [];
     this.aiTimer = 0;
+    this.respawnTimers = new Map();
 
     // Use provided match config or generate new one
     this.matchConfig = data?.matchConfig ?? MatchOrchestrator.generateMatch();
@@ -150,13 +154,15 @@ export class BattleScene extends Phaser.Scene {
     // HUD
     this.hud = new HUD(this);
 
-    // Match timer
-    this.time.addEvent({
-      delay: 1000,
-      callback: this.tickTimer,
-      callbackScope: this,
-      loop: true,
-    });
+    // MatchStateMachine — owns the 5-minute countdown timer
+    this.matchStateMachine = new MatchStateMachine(this, MATCH_DURATION);
+    this.matchStateMachine.start();
+
+    // Subscribe to match state changes
+    EventBus.on(Events.MATCH_STATE_CHANGE, this.onMatchStateChange, this);
+
+    // Subscribe to hero kills for kill tracking and kill feed
+    EventBus.on(Events.HERO_KILLED, this.onHeroKill, this);
   }
 
   private createVignette(): void {
@@ -195,7 +201,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   update(time: number, delta: number): void {
-    if (this.matchOver) return;
+    if (this.matchStateMachine?.getPhase() === MatchPhase.ENDED) return;
 
     const dt = delta / 1000;
 
@@ -230,9 +236,6 @@ export class BattleScene extends Phaser.Scene {
 
     // Update HUD
     this.hud.update();
-
-    // Check win condition
-    this.checkWinCondition();
   }
 
   private handlePlayerInput(dt: number): void {
@@ -283,85 +286,39 @@ export class BattleScene extends Phaser.Scene {
     this.combatSystem.tryAutoAttack(this.player);
   }
 
-  private tickTimer(): void {
-    if (this.matchOver) return;
-    this.matchTimer--;
-    if (this.matchTimer <= 0) {
+  private onMatchStateChange({ phase }: { phase: MatchPhase }): void {
+    if (phase === MatchPhase.ENDED) {
       this.endMatch();
     }
   }
 
-  onHeroKill(killer: Hero, victim: Hero): void {
+  private onHeroKill({ victim, killerId }: { victim: BaseEntity; killerId?: string }): void {
+    // Update kill counters
     if (victim.team === Team.A) {
       this.teamBKills++;
     } else {
       this.teamAKills++;
     }
 
-    if (killer === this.player) {
+    if (victim === this.player) {
+      this.playerDeaths++;
+    }
+
+    // Kill credit for player
+    const killerHero = this.heroes.find(h => h.getUniqueId() === killerId);
+    if (killerHero === this.player) {
       this.playerKills++;
     }
 
     // Kill feed
-    this.hud.showKill(killer.stats.name, victim.stats.name);
-
-    if (victim === this.player) {
-      this.playerDeaths++;
-      this.endMatchAsDefeat();
-      return;
-    }
-
-    this.checkWinCondition();
-  }
-
-  private endMatchAsDefeat(): void {
-    if (this.matchOver) return;
-    this.matchOver = true;
-
-    const playerData = StorageManager.load();
-    const mmrChange = MMRCalculator.calculate(playerData.mmr, false, false, playerData);
-
-    const result: MatchResult = {
-      won: false,
-      draw: false,
-      playerHero: this.player.stats.id,
-      playerTeam: this.player.team,
-      playerKills: this.playerKills,
-      playerDeaths: this.playerDeaths,
-      teamKills: this.player.team === Team.A ? this.teamAKills : this.teamBKills,
-      enemyKills: this.player.team === Team.A ? this.teamBKills : this.teamAKills,
-      teamSize: this.matchConfig.teamSize,
-      arenaTheme: this.matchConfig.arenaTheme,
-      arenaLayout: this.matchConfig.arenaLayout,
-      mmrChange,
-      timestamp: Date.now(),
-    };
-
-    StorageManager.saveMatchResult(result);
-
-    this.time.delayedCall(1200, () => {
-      this.cameras.main.fadeOut(400, 0, 0, 0, (_cam: any, progress: number) => {
-        if (progress === 1) {
-          this.scene.start('ResultScene', { result });
-        }
-      });
-    });
-  }
-
-  private checkWinCondition(): void {
-    if (this.matchOver) return;
-
-    const teamAAlive = this.teamA.filter(h => h.isAlive).length;
-    const teamBAlive = this.teamB.filter(h => h.isAlive).length;
-
-    if (teamAAlive === 0 || teamBAlive === 0) {
-      this.endMatch();
-    }
+    const killerName = killerHero?.stats.name ?? 'Unknown';
+    const victimHero = victim as Hero;
+    this.hud.showKill(killerName, victimHero.stats.name);
   }
 
   private endMatch(): void {
-    if (this.matchOver) return;
-    this.matchOver = true;
+    if (this.endingMatch) return;
+    this.endingMatch = true;
 
     const teamAAlive = this.teamA.filter(h => h.isAlive).length;
     const teamBAlive = this.teamB.filter(h => h.isAlive).length;
@@ -414,6 +371,15 @@ export class BattleScene extends Phaser.Scene {
   }
 
   shutdown(): void {
+    EventBus.off(Events.HERO_KILLED, this.onHeroKill, this);
+    EventBus.off(Events.MATCH_STATE_CHANGE, this.onMatchStateChange, this);
+    if (this.matchStateMachine) {
+      this.matchStateMachine.destroy();
+    }
+    for (const timer of this.respawnTimers.values()) {
+      this.time.removeEvent(timer);
+    }
+    this.respawnTimers.clear();
     if (this.vfxManager) {
       this.vfxManager.destroy();
     }
