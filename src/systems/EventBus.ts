@@ -24,6 +24,10 @@ export const Events = {
   MATCH_TIMER_TICK:   'match:timer_tick',
   RESPAWN_TICK:       'respawn:tick',
   SCORE_UPDATED:      'score:updated',
+  // Phase 2 additions:
+  HERO_HIT:           'hero:hit',          // emitted by CombatSystem.tryAutoAttack after hit connects
+  DAMAGE_TAKEN:       'hero:damage_taken', // emitted by Hero.takeDamage on non-zero final damage
+  HERO_LEVELED_UP:    'hero:leveled_up',   // emitted by Hero.levelUp() when level increases
 } as const;
 
 /** Derived union type of all valid event keys. */

@@ -5,6 +5,7 @@ import { Hero } from '../entities/Hero';
 import { Projectile } from '../entities/Projectile';
 import { AreaEffect } from '../entities/AreaEffect';
 import { VFXManager } from './VFXManager';
+import { EventBus, Events } from './EventBus';
 
 export class CombatSystem {
   private scene: Phaser.Scene;
@@ -138,6 +139,11 @@ export class CombatSystem {
     if (closest) {
       const damage = hero.getAttackDamage();
       closest.takeDamage(damage, hero.getUniqueId());
+      EventBus.emit(Events.HERO_HIT, {
+        attacker: hero,
+        victim: closest,
+        damage,
+      });
       hero.autoAttackTimer = AUTO_ATTACK_COOLDOWN / 1000;
 
       if (hero.isRanged()) {

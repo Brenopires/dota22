@@ -3,6 +3,7 @@ import { HERO_RADIUS, HERO_LABEL_SIZE, MELEE_RANGE } from '../constants';
 import { HeroStats, Team, ActiveBuff, BuffType, AbilityDef } from '../types';
 import { HealthBar } from './HealthBar';
 import { BaseEntity } from './BaseEntity';
+import { EventBus, Events } from '../systems/EventBus';
 
 export class Hero extends BaseEntity {
   readonly entityType = 'hero' as const;
@@ -269,6 +270,11 @@ export class Hero extends BaseEntity {
     const finalDamage = super.takeDamage(rawDamage, sourceId);
     if (finalDamage > 0) {
       this.showDamageNumber(finalDamage);
+      EventBus.emit(Events.DAMAGE_TAKEN, {
+        victim: this,
+        sourceId,
+        damage: finalDamage,
+      });
     }
     return finalDamage;
   }
