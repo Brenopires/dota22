@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 ## Current Position
 
 Phase: 6 of 8 (Neutral Camps & Arena) — IN PROGRESS
-Plan: 4 of 5 — plans 01, 02, 03 done
-Status: Phase 6 plans 02+03 complete — NeutralMob entity, HASTE/CDR buff mechanics, camp scoring
-Last activity: 2026-02-23 — Completed 06-02: NeutralMob entity class
+Plan: 5 of 5 — plans 01, 02, 03, 04 done
+Status: Phase 6 plan 04 complete — NeutralCampSystem orchestrator + BattleScene integration
+Last activity: 2026-02-23 — Completed 06-04: NeutralCampSystem + BattleScene integration
 
-Progress: [██████████████████] 73%
+Progress: [███████████████████] 76%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 28
+- Total plans completed: 29
 - Average duration: 2 min
-- Total execution time: 59 min
+- Total execution time: 61 min
 
 **By Phase:**
 
@@ -32,7 +32,7 @@ Progress: [██████████████████] 73%
 | 03-asymmetric-teams | 5/5 | 5 min | 1 min |
 | 04-boss-towers | 5/6 | 16 min | 3 min |
 | 05-battle-traits | 5/5 | 9 min | 2 min |
-| 06-neutral-camps | 3/5 | 5 min | 2 min |
+| 06-neutral-camps | 4/5 | 7 min | 2 min |
 
 **Recent Trend:**
 - Last 5 plans: 2 min, 3 min, 2 min, 2 min, 2 min
@@ -133,6 +133,9 @@ Recent decisions affecting current work:
 - [06-03]: HASTE stacks multiplicatively with slow factor — slowed 50% + hasted 25% = 62.5% speed (intentional, slow still meaningful)
 - [06-03]: campClears tracked separately (campClearsA/campClearsB) from kill score for Phase 7 scoring breakdown
 - [06-03]: killerId suffix '_A'/'_B' used to determine scoring team — consistent with Hero.getUniqueId() format
+- [06-04]: NeutralCampSystem uses CAMP_POSITIONS for leash origin — same coordinates used to spawn mobs, no need to expose homePosition from NeutralMob
+- [06-04]: bossMinute++ moved outside boss alive check — camp mobs scale by match elapsed minutes, not boss lifetime
+- [06-04]: Camp mob physics colliders registered at create() time for initial 4 mobs — Phaser arcade body persists across respawn() calls
 
 ### Pending Todos
 
@@ -148,5 +151,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 06-02-PLAN.md — NeutralMob entity class
+Stopped at: Completed 06-04-PLAN.md — NeutralCampSystem + BattleScene integration
 Resume file: None
