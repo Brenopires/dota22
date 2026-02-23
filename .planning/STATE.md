@@ -144,6 +144,10 @@ Recent decisions affecting current work:
 - [07-01]: onBossKilled uses killerId.endsWith(_A/_B) — consistent with onCampCleared pattern, no Hero[] reference needed in MSM
 - [07-01]: getScore() returns full spread — callers get new fields automatically without API change
 - [07-01]: onTick() NOT modified — Sudden Death timer trigger is plan 04 responsibility as specified
+- [07-02]: respawnBoss() calls setCircle(BOSS_RADIUS, -BOSS_RADIUS, -BOSS_RADIUS) matching constructor — die() zeros radius; same pattern as hero respawn (01-04)
+- [07-02]: BossAISystem isRoaming persists across respawns — once enabled after Tier 2, boss always roams
+- [07-02]: Tier 2 buff sourceId 'boss_tier2_reward' distinct from 'boss_reward' — independent stacking
+- [07-02]: bossKillCount >= 3 guard for Tier 3 — defensive coverage
 - [07-03]: scoreText replaces killsText — total score sourced from MatchStateMachine.getScore().teamA/B, not raw kill counters
 - [07-03]: scoreBreakdownText y-position decided at constructor time via hasTraitIndicator flag — avoids per-frame conditional
 - [07-03]: Breakdown text single-color tint toward player's team — full per-segment coloring would require Phaser rich text plugin
