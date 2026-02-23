@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-22)
 ## Current Position
 
 Phase: 8 of 8 (Draft & Ranked) — IN PROGRESS
-Plan: 2 of 5 — done
-Status: Plan 08-02 complete — MatchOrchestrator partial/finalize split, TeamManager generateTeamBOnly
-Last activity: 2026-02-23 — Completed 08-02: generatePartialMatch, finalizeMatch, PartialMatchConfig interface
+Plan: 3 of 5 — done
+Status: Plan 08-03 complete — DraftScene rewritten as interactive pick-from-3 hero selector with countdown
+Last activity: 2026-02-23 — Completed 08-03: DraftScene pick cards, countdown timer, PartialMatchConfig pipeline
 
-Progress: [█████████████████████] 91%
+Progress: [█████████████████████] 92%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 34
+- Total plans completed: 35
 - Average duration: 2 min
-- Total execution time: 71 min
+- Total execution time: 73 min
 
 **By Phase:**
 
@@ -34,7 +34,7 @@ Progress: [█████████████████████] 91%
 | 05-battle-traits | 5/5 | 9 min | 2 min |
 | 06-neutral-camps | 5/5 | 9 min | 2 min |
 | 07-scoring-sudden-death | 5/5 | 9 min | 2 min |
-| 08-draft-ranked | 2/5 | 4 min | 2 min |
+| 08-draft-ranked | 3/5 | 6 min | 2 min |
 
 **Recent Trend:**
 - Last 5 plans: 2 min, 2 min, 2 min, 2 min, 2 min
@@ -167,6 +167,9 @@ Recent decisions affecting current work:
 - [08-02]: PartialMatchConfig exported from MatchOrchestrator (not types.ts) — internal boundary type for orchestrator/draft boundary, not a shared game-wide type
 - [08-02]: teamA passive IDs excluded from trait blacklist in finalizeMatch — trait chosen before hero pick in draft flow, post-hoc conflicts acceptable by design
 - [08-02]: generateTeams() and generateMatch() preserved unchanged — BattleScene fallback path uses generateMatch() unmodified
+- [08-03]: Tasks 1+2 implemented in single pass (same file) — no intermediate stub commit needed; both methods fully implemented together
+- [08-03]: Card border hover redraws graphics (clear + redraw) rather than tween on alpha — Phaser Graphics lineStyle alpha cannot be tweened directly
+- [08-03]: Hit area is invisible Rectangle with setInteractive — clean separation between visual card layer and click boundary
 
 ### Pending Todos
 
@@ -182,5 +185,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 08-02-PLAN.md — MatchOrchestrator partial/finalize split, PartialMatchConfig interface
+Stopped at: Completed 08-03-PLAN.md — DraftScene interactive pick-from-3 with countdown timer
 Resume file: None
