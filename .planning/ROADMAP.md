@@ -192,15 +192,14 @@ Plans:
 4. The second boss kill grants the killing team a permanent damage amplification buff and the boss begins roaming the map (obstacle-aware movement).
 5. The match never runs past 5:00 plus pending death animations — no race conditions at the 5:00:000 boundary.
 
-**Plans:** TBD
+**Plans:** 5 plans
 
 Plans:
-- [ ] 07-01: Full scoring system (kill + boss + tower threshold + neutral control tracking; live HUD scoreboard)
-- [ ] 07-02: Tower damage threshold scoring (2pt trigger at damage percentage; visual cue)
-- [ ] 07-03: Boss Tier 2 (second kill: damage amp buff + roaming movement with obstacle avoidance)
-- [ ] 07-04: Boss Tier 3 + Sudden Death trigger (third boss kill → SUDDEN_DEATH state)
-- [ ] 07-05: Sudden Death at 5:00 tie (state machine timer fires at 5:00; disables respawn before processing deaths)
-- [ ] 07-06: Sudden Death HUD (screen flash, red border, "SUDDEN DEATH" text, no-respawn warning)
+- [ ] 07-01-PLAN.md — Type foundation + four-source scoring (SUDDEN_DEATH state, constants, events, MSM boss/tower scoring)
+- [ ] 07-02-PLAN.md — Boss Tier 2 (respawn, damage amp, waypoint roaming) + BattleScene kill count tracking
+- [ ] 07-03-PLAN.md — Live HUD scoreboard (total score + breakdown) + tower threshold visual cue
+- [ ] 07-04-PLAN.md — Sudden Death triggers (5:00 tie + boss Tier 3) + respawn guard + team wipe + SD HUD overlay
+- [ ] 07-05-PLAN.md — Phase 7 verification + STATE/ROADMAP completion update
 
 ---
 
@@ -240,5 +239,5 @@ Plans:
 | 4. Boss & Towers | 6/6 | Complete | 2026-02-23 |
 | 5. Battle Traits & Gems | 5/5 | Complete | 2026-02-23 |
 | 6. Neutral Camps & Arena | 5/5 | Complete | 2026-02-23 |
-| 7. Scoring & Sudden Death | 0/6 | Not started | - |
+| 7. Scoring & Sudden Death | 0/5 | In Progress | - |
 | 8. Draft & Ranked | 0/4 | Not started | - |
